@@ -1,0 +1,321 @@
+body {
+    font-family: 'Poppins', sans-serif;
+  margin: 0;
+  background: linear-gradient(to bottom, #f7f4f2, #ece1dc);
+  color: #3e2e2a;
+}
+main { 
+    box-sizing: border-box; 
+    padding: 40px; 
+    margin: 20px auto;
+    padding: 20px 40px 40px 40px;
+    border-radius: 10px;
+    min-height: calc(100vh - 250px);
+}
+h2 {
+    font-size: 32px;
+    font-weight: bold;
+    color: #3b1f1f;
+    margin: 0 0 7px 0;
+    text-align: center;
+}
+
+header {
+    background-color: #5a3d31;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 60px;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+header h1 {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+}
+
+header h1 i {
+    margin-right: 8px;
+    font-size: 24px;
+}
+
+header nav a {
+    color: white;
+    margin-left: 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+header nav a:hover,
+header nav a.activo {
+    color: #ffddbc;
+}
+footer {
+    background-color: #5a3d31;
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
+    margin-top: 30px;
+    font-size: 14px;
+    display: block; /* Cambiado de flex a block */
+    position: fixed;
+  bottom: 0;        /* para el footer */
+  left: 0;
+  right: 0;
+  height: auto
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+footer nav {
+    margin-top: 8px;
+    color: #dcdcdc;
+}
+
+footer nav a {
+    color: #dcdcdc;
+    text-decoration: none;
+    margin: 0 4px;
+    transition: color 0.3s ease;
+}
+
+footer nav a:hover {
+    color: #ffddbc;
+    text-decoration: underline;
+}
+.menu_inventario {
+    display: flex;
+    flex-direction: column;   
+    align-items: center;      
+    justify-content: center;  
+    gap: 25px;                
+    height: 60vh;             
+}
+.menu_inventario button {
+    background-color: #d7ccc8;
+    color: #3e2723;
+    font-size: 1.4rem;
+    font-weight: bold;
+    padding: 18px 80px;       
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    width: 300px;             
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+.menu_inventario button:hover {
+    background-color: #a1887f;
+    color: white;
+    transform: scale(1.05);
+}
+.menu_inventario a {
+    color: black;
+    text-decoration: none;
+    margin: 0 5px;
+}
+.inventario {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    column-gap: 8px; /* espacio entre columnas */
+    row-gap: 16px;    /* reduce el espacio vertical */
+    padding: 10px 30px;
+    max-width: 1800px; 
+    margin: 0 auto;
+    justify-items: center;
+}
+.producto {
+    width: 210px;          
+    height: 220px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.producto:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+.producto h3 {
+    font-size: 1rem;    
+    margin: 5px 0;
+    color: #3e2723;
+}
+.producto p {
+    font-size: 0.85rem;  
+    margin: 5px 0;
+}
+.producto img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin: 5px 0;
+}
+input[type="number"] {
+    width: 60px;
+    padding: 3px;
+    font-size: 0.85rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+.botones {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+.botones button {
+    background-color: #6d4c41;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.botones button:hover {
+    background-color: #4e342e;
+}
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+.modal_contenido {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f3f0 100%);
+    border-radius: 10px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: popIn 0.35s ease-out;
+    position: relative;
+    padding: 10px;
+}
+h4 {
+    color: #5D4037;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    padding: 10px 0px;
+}
+.cerrar {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #5D4037;
+    transition: color 0.3s;
+}
+.cerrar:hover {
+    color: #ffd7b5;
+}
+.form_grupo {
+    margin-bottom: 1rem;
+}
+.form_grupo label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: #4e342e;
+}
+.form_grupo input[type = "number"] {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+.form_grupo input[type = "text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+.form_grupo input:focus {
+    border-color: #6d4c41;
+    box-shadow: 0 0 6px rgba(109, 76, 65, 0.4);
+    outline: none;
+}
+.botones_modal {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.8rem;
+}
+.botones_modal button {
+    border: none;
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.btn_guardar {
+    background-color: #6d4c41;
+    color: #fff;
+}
+.btn_guardar:hover {
+    background-color: #4e342e;
+    transform: scale(1.04);
+}
+.btn_cancelar {
+    background-color: #b0b0b0;
+    color: #fff;
+}
+.btn_cancelar:hover {
+    background-color: #8d8d8d;
+    transform: scale(1.04);
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+    }
+
+    header nav a {
+        display: inline-block;
+        margin: 10px;
+    }
+
+    footer {
+        padding: 20px;
+    }
+}

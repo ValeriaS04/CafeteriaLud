@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Cafetería JAVA</title>
+    <link rel="stylesheet" href="estilosi.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos específicos para la gestión de usuarios */
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background-color: #6f4e37;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background-color: #5a3d31;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .btn-action {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-edit {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1><i class="fa-solid fa-mug-saucer" style="color: #ffffff;"></i> Cafetería JAVA</h1>
+        <nav>
+            <a href="Inicio.html">Inicio</a>
+            <a href="Gestion de pedidos.html">Pedidos</a>
+            <a href="Inventario/inventario_menu.html">Inventario</a>
+            <a href="Panel.html">Panel</a>
+            <a href="#" class="activo">Usuarios</a>
+            <a href="InicioSesion.html">Cerrar sesion</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="header-actions">
+                <h2>Gestión de Usuarios</h2>
+                <button class="btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Nuevo Usuario
+                </button>
+            </div>
+
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usersList">
+                    <tr>
+                        <td colspan="5">Cargando usuarios...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal para Agregar/Editar Usuario -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Nuevo Usuario</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico:</label>
+                    <input type="email" id="correo" required>
+                </div>
+                <div class="form-group">
+                    <label for="contrasena">Contraseña:</label>
+                    <input type="password" id="contrasena" placeholder="Dejar en blanco si no cambia">
+                </div>
+                <div class="form-group">
+                    <label for="rol">Rol:</label>
+                    <select id="rol" required>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Cajero/Mesero">Cajero/Mesero</option>
+                        <option value="Encargado de inventario">Encargado de inventario</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()"
+                        style="padding: 10px 20px; border:none; background:#ccc; border-radius:5px; cursor:pointer;">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Verificar acceso
+        document.addEventListener("DOMContentLoaded", () => {
+            const rol = localStorage.getItem("usuarioRol");
+            if (rol !== "Administrador") {
+                alert("Acceso denegado. Solo administradores.");
+                window.location.href = "Inicio.html";
+                return;
+            }
+            loadUsers();
+        });
+
+        const modal = document.getElementById('userModal');
+        const form = document.getElementById('userForm');
+        const usersList = document.getElementById('usersList');
+
+        function openModal(user = null) {
+            modal.style.display = 'flex';
+            if (user) {
+                document.getElementById('modalTitle').textContent = 'Editar Usuario';
+                document.getElementById('userId').value = user.IdUsuario;
+                document.getElementById('nombre').value = user.Nombre;
+                document.getElementById('correo').value = user.Correo;
+                document.getElementById('rol').value = user.Rol;
+                document.getElementById('contrasena').removeAttribute('required');
+                document.getElementById('contrasena').placeholder = "Dejar en blanco para mantener actual";
+            } else {
+                document.getElementById('modalTitle').textContent = 'Nuevo Usuario';
+                form.reset();
+                document.getElementById('userId').value = '';
+                document.getElementById('contrasena').setAttribute('required', 'true');
+                document.getElementById('contrasena').placeholder = "";
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('http://localhost:3000/api/usuarios');
+                const users = await res.json();
+
+                usersList.innerHTML = '';
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.IdUsuario}</td>
+                        <td>${user.Nombre}</td>
+                        <td>${user.Correo}</td>
+                        <td>
+                            <span style="background: ${user.Rol === 'Administrador' ? '#e8f5e9' : '#fff3e0'}; 
+                                       color: ${user.Rol === 'Administrador' ? '#2e7d32' : '#ef6c00'}; 
+                                       padding: 4px 8px; border-radius: 12px; font-size: 0.9em;">
+                                ${user.Rol}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-action btn-edit" onclick='editUser(${JSON.stringify(user)})'>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteUser(${user.IdUsuario})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    usersList.appendChild(row);
+                });
+            } catch (error) {
+                console.error(error);
+                usersList.innerHTML = '<tr><td colspan="5" style="color:red;">Error al cargar usuarios</td></tr>';
+            }
+        }
+
+        function editUser(user) {
+            openModal(user);
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/usuarios/${id}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    loadUsers();
+                } else {
+                    alert('Error al eliminar usuario');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión');
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('userId').value;
+            const nombre = document.getElementById('nombre').value;
+            const correo = document.getElementById('correo').value;
+            const contrasena = document.getElementById('contrasena').value;
+            const rol = document.getElementById('rol').value;
+
+            const data = { nombre, correo, rol };
+            if (contrasena) data.contrasena = contrasena;
+
+            try {
+                let url = 'http://localhost:3000/api/usuarios';
+                let method = 'POST';
+
+                if (id) {
+                    url += `/${id}`;
+                    method = 'PUT';
+                }
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    closeModal();
+                    loadUsers();
+                    alert(result.message);
+                } else {
+                    alert(result.message || 'Error al guardar');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión');
+            }
+        });
+
+        // Cerrar modal si se hace clic fuera
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

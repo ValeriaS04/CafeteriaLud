@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería JAVA</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Encabezado -->
+  <header>
+    <h1><i class="fa-solid fa-mug-saucer" style="color: #ffffff;"></i> Cafetería JAVA</h1>
+    <nav>
+      <a href="Inicio.html">Inicio</a>
+      <a href="#" class="activo">Pedidos</a>
+      <a href="Inventario/inventario_menu.html">Inventario</a>
+      <a href="Panel.html">Panel</a>
+      <a href="Usuarios.html" id="linkUsuarios" style="display:none;">Usuarios</a>
+      <a href="InicioSesion.html">Cerrar sesion</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin-bottom: 0;">Pedidos</h2>
+      <button id="btnAddProduct" class="add" style="display:none; width: auto; padding: 10px 20px;">
+        <i class="fa-solid fa-plus"></i> Agregar Producto
+      </button>
+    </div>
+
+    <!-- Contenedor de tarjetas (se llenará dinámicamente) -->
+    <div id="productsContainer" class="cards">
+      <!-- Las tarjetas se generarán aquí con JavaScript -->
+    </div>
+
+    <div class="actions">
+      <!--seleccionar mesa-->
+      <div class="mesa-selector-container">
+        <label for="selectMesa">Mesa/Cliente</label>
+        <select id="selectMesa">
+          <option value="1">Mesa 1</option>
+          <option value="2">Mesa 2</option>
+          <option value="3">Mesa 3</option>
+          <option value="4">Mesa 4</option>
+        </select>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <p>© 2025 Cafetería JAVA. Todos los derechos reservados.</p>
+      <div class="footer-links">
+        <a href="politica_privacidad.html">Política de privacidad</a> |
+        <a href="condiciones_servicio.html">Condiciones de servicio</a> |
+        <a href="preguntas_frecuentes.html">Preguntas frecuentes</a>
+      </div>
+    </div>
+  </footer>
+
+  <!--modal-->
+  <div id="resumenModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h3>Resumen de Pedido</h3>
+      <ul id="listaPedidoModal">
+      </ul>
+      <div class="modal-footer">
+        <p><strong>Total:</strong> <span id="totalModal"></span></p>
+      </div>
+      <button id="seguirAgregando" class="add">Añadir o Actualizar Productos</button>
+      <button id="cerrarYConfirmar" class="report">Cerrar y Confirmar</button>
+    </div>
+  </div>
+  <!--FinModal-->
+
+  <!-- Modal Agregar Producto -->
+  <div id="addProductModal" class="modal">
+    <div class="modal-content">
+      <span class="close-add-product" style="float:right; font-size:28px; cursor:pointer;">&times;</span>
+      <h3>Agregar Nuevo Producto</h3>
+      <form id="addProductForm" style="display: flex; flex-direction: column; gap: 15px;">
+        <div>
+          <label for="newProdName" style="font-weight: bold;">Nombre:</label>
+          <input type="text" id="newProdName" required
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <div>
+          <label for="newProdDesc" style="font-weight: bold;">Descripción:</label>
+          <textarea id="newProdDesc"
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+        </div>
+        <div>
+          <label for="newProdPrice" style="font-weight: bold;">Precio ($):</label>
+          <input type="number" id="newProdPrice" step="0.01" required
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <div>
+          <label for="newProdStock" style="font-weight: bold;">Stock Inicial:</label>
+          <input type="number" id="newProdStock" value="10" required
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <div>
+          <label for="newProdCategory" style="font-weight: bold;">Categoría:</label>
+          <select id="newProdCategory" required
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">Cargando categorías...</option>
+          </select>
+        </div>
+        <div>
+          <label for="newProdImage" style="font-weight: bold;">URL Imagen:</label>
+          <input type="url" id="newProdImage" placeholder="https://ejemplo.com/imagen.jpg"
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <button type="submit" class="add" style="width: 100%; margin-top: 10px;">Guardar Producto</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Variable para almacenar los productos del pedido
+    let pedidoActual = [];
+    let allProducts = []; // Almacena todos los productos del menú
+
+    // Función para cargar productos desde el backend
+    async function loadProducts() {
+      try {
+        const response = await fetch('http://localhost:3000/api/menu');
+        if (!response.ok) throw new Error('Error al cargar el menú');
+        allProducts = await response.json();
+        renderProducts(allProducts);
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al cargar los productos. Asegúrate de que el servidor esté corriendo.');
+      }
+    }
+
+    // Función para renderizar las tarjetas de productos
+    function renderProducts(products) {
+      const container = document.getElementById('productsContainer');
+      container.innerHTML = ''; // Limpiar contenedor
+
+      products.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = product.IdProducto;
+
+        // Usar imagen por defecto si no hay URL
+        const imgSrc = product.ImagenUrl || 'https://via.placeholder.com/150?text=Sin+Imagen';
+
+        card.innerHTML = `
+          <img src="${imgSrc}" alt="${product.Nombre}" onerror="this.src='https://via.placeholder.com/150?text=Error+Imagen'">
+          <h3 class="producto-nombre">${product.Nombre}</h3>
+          <p class="producto-precio">Precio: $${product.Precio}</p>
+          <div class="cantidad-control">
+            <label for="cantidad-${product.IdProducto}">Cantidad:</label>
+            <input type="number" value="0" min="0" class="producto-cantidad" id="cantidad-${product.IdProducto}">
+            <div class="buttons">
+              <button class="edit">✏️</button>
+              <button class="ok">✔</button>
+              <button class="delete">❌</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Función para limpiar el pedido y resetear la interfaz
+    function cancelarPedidoYLimpiar() {
+      // 1. Vaciar el array del pedido en memoria
+      pedidoActual = [];
+
+      // 2. Resetear todas las cantidades de los inputs de producto a 0
+      document.querySelectorAll('.producto-cantidad').forEach(input => {
+        input.value = 0;
+      });
+
+      // 🚨 CLAVE: Habilitar TODOS los botones OK para el próximo pedido
+      document.querySelectorAll('.ok').forEach(button => {
+        button.disabled = false;
+        button.style.backgroundColor = ''; // Restablecer color
+        button.style.cursor = 'pointer';
+      });
+
+      // 3. Ocultar el modal
+      resumenModal.style.display = 'none';
+
+      // 4. Notificar al usuario
+      alert('❌ Pedido Cancelado. El carrito ha sido vaciado.');
+    }
+
+    // Referencias al Modal
+    const resumenModal = document.getElementById('resumenModal');
+    const listaPedidoModal = document.getElementById('listaPedidoModal');
+    const totalModal = document.getElementById('totalModal');
+    const closeButton = document.querySelector('.close-button');
+    const cerrarYConfirmarButton = document.getElementById('cerrarYConfirmar');
+    // Referencias al Nuevo Botón
+    const seguirAgregandoButton = document.getElementById('seguirAgregando');
+
+    // Función para actualizar y mostrar el Modal
+    function mostrarResumenPedido() {
+      listaPedidoModal.innerHTML = ''; // Limpiar lista anterior
+      let total = 0;
+
+      if (pedidoActual.length === 0) {
+        listaPedidoModal.innerHTML = '<li>No hay productos en el pedido.</li>';
+        totalModal.textContent = '$0.00';
+      } else {
+        pedidoActual.forEach(item => {
+          // Convertir precio a número decimal y calcular subtotal
+          const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
+          const subtotal = precioNumero * item.cantidad;
+          total += subtotal;
+
+          const li = document.createElement('li');
+          li.innerHTML = `
+    ${item.nombre} (x${item.cantidad}) -
+    $${precioNumero.toFixed(2)} c/u =
+    $${subtotal.toFixed(2)}
+    `;
+          listaPedidoModal.appendChild(li);
+        });
+
+        totalModal.textContent = `$${total.toFixed(2)}`;
+      }
+
+      resumenModal.style.display = 'block'; // Mostrar el modal
+    }
+
+    // 🚨 CÓDIGO CORREGIDO: Lógica para CANCELAR el Pedido al presionar la 'x'
+    closeButton.addEventListener('click', () => {
+      cancelarPedidoYLimpiar();
+    });
+
+    cerrarYConfirmarButton.addEventListener('click', async () => {
+      if (pedidoActual.length === 0) {
+        alert('El pedido está vacío. No hay nada que confirmar.');
+        resumenModal.style.display = 'none';
+        return;
+      }
+      const idMesa = document.getElementById('selectMesa').value;
+
+      let total = 0;
+      const productosParaDB = pedidoActual.map(item => {
+        const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
+        const subtotal = precioNumero * item.cantidad;
+        total += subtotal;
+
+        return {
+          id: item.idProducto,
+          cantidad: item.cantidad,
+          subtotal: parseFloat(subtotal.toFixed(2))
+        };
+      });
+      // Construir el objeto principal del pedido
+      const pedidoData = {
+        // 🚨 IdCliente: Se toma de la selección de Mesa
+        idCliente: parseInt(idMesa, 10),
+        // IdUsuario: Se toma de la sesión de Login
+        idUsuario: parseInt(localStorage.getItem('usuarioId') || '1', 10),
+        total: parseFloat(total.toFixed(2)),
+        productos: productosParaDB
+      };
+
+      // Validación de seguridad (opcional pero recomendada)
+      if (isNaN(pedidoData.idUsuario)) {
+        alert('Error: No se pudo identificar al empleado (ID de usuario no encontrado).');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/pedidos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pedidoData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // 1. Mensaje ÚNICO de Éxito
+          alert(`✅ Pedido #${data.idPedido} (Mesa ${idMesa}) guardado con éxito.`);
+
+          // 2. Limpieza de Interfaz (sin alert de cancelación)
+          pedidoActual = [];
+          document.querySelectorAll('.producto-cantidad').forEach(input => { input.value = 0; });
+          document.querySelectorAll('.ok').forEach(button => { // ⬅️ Habilitar botones aquí
+            button.disabled = false;
+            button.style.backgroundColor = '';
+            button.style.cursor = 'pointer';
+          });
+          resumenModal.style.display = 'none';
+
+        } else {
+          // Manejo del error si el backend falló (ej: stock insuficiente)
+          alert(`❌ Error al guardar el pedido: ${data.message || 'Error desconocido.'}`);
+        }
+
+      } catch (error) {
+        console.error('Error de conexión con el servidor:', error);
+        alert('❌ Error de conexión. Asegúrate de que tu servidor (node server.js) esté corriendo.');
+      }
+    });
+
+    // 🚨 CÓDIGO CORREGIDO: Cancelar si el usuario hace clic fuera del modal
+    window.addEventListener('click', (event) => {
+      if (event.target === resumenModal) {
+        cancelarPedidoYLimpiar(); // Llama a la función de cancelación
+      }
+    });
+
+    // Lógica del nuevo botón "Añadir Más Productos" (¡NUEVO!)
+    seguirAgregandoButton.addEventListener('click', () => {
+      resumenModal.style.display = 'none';
+      // Importante: NO vaciamos el pedidoActual, solo cerramos el modal.
+    });
+
+    // DELEGACIÓN DE EVENTOS para los botones (OK, Edit, Delete)
+    // Esto permite que funcionen en elementos creados dinámicamente
+    document.getElementById('productsContainer').addEventListener('click', (e) => {
+      const target = e.target;
+      const card = target.closest('.card');
+      if (!card) return;
+
+      // Botón OK (✔)
+      if (target.classList.contains('ok')) {
+        const idProducto = parseInt(card.dataset.id, 10);
+        const nombreElement = card.querySelector('.producto-nombre');
+        const precioElement = card.querySelector('.producto-precio');
+        const cantidadInput = card.querySelector('.producto-cantidad');
+
+        const nombre = nombreElement.textContent.trim();
+        const precioTexto = precioElement.textContent.trim();
+        const cantidad = parseInt(cantidadInput.value, 10);
+
+        if (cantidad < 1 || isNaN(cantidad)) {
+          alert('La cantidad debe ser un número positivo para añadir un producto.');
+          return;
+        }
+
+        const producto = {
+          idProducto: idProducto,
+          nombre: nombre,
+          precio: precioTexto,
+          cantidad: cantidad
+        };
+
+        let itemExistente = pedidoActual.find(item => item.idProducto === idProducto);
+
+        if (itemExistente) {
+          itemExistente.cantidad += cantidad;
+        } else {
+          pedidoActual.push(producto);
+          target.disabled = true;
+          target.style.backgroundColor = '#ccc';
+          target.style.cursor = 'default';
+        }
+        mostrarResumenPedido();
+      }
+
+      // Botón Edit (✏️)
+      if (target.classList.contains('edit')) {
+        const nombreElement = card.querySelector('.producto-nombre');
+        const cantidadInput = card.querySelector('.producto-cantidad');
+        const nombre = nombreElement.textContent.trim();
+        const nuevaCantidad = parseInt(cantidadInput.value, 10);
+
+        if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+          alert('La cantidad debe ser mayor a 0.');
+          return;
+        }
+
+        const productoEnPedido = pedidoActual.find(item => item.nombre === nombre);
+        if (productoEnPedido) {
+          productoEnPedido.cantidad = nuevaCantidad;
+          mostrarResumenPedido();
+          alert('Cantidad actualizada en el resumen.');
+        } else {
+          alert('Este producto aún no está en el pedido. Confírmalo primero con ✔.');
+        }
+      }
+
+      // Botón Delete (❌)
+      if (target.classList.contains('delete')) {
+        const nombreElement = card.querySelector('.producto-nombre');
+        const nombre = nombreElement.textContent.trim();
+
+        const index = pedidoActual.findIndex(item => item.nombre === nombre);
+        if (index !== -1) {
+          pedidoActual.splice(index, 1);
+          mostrarResumenPedido();
+          alert('Producto eliminado del resumen.');
+
+          const okButton = card.querySelector('.ok');
+          if (okButton) {
+            okButton.disabled = false;
+            okButton.style.backgroundColor = '';
+            okButton.style.cursor = 'pointer';
+          }
+        } else {
+          alert('Este producto no está en el pedido.');
+        }
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadProducts(); // Cargar productos al iniciar
+
+      const rol = localStorage.getItem("usuarioRol");
+      if (rol === "Administrador") {
+        const linkUsuarios = document.getElementById("linkUsuarios");
+        if (linkUsuarios) linkUsuarios.style.display = "inline-block";
+
+        const btnAddProduct = document.getElementById("btnAddProduct");
+        if (btnAddProduct) {
+          btnAddProduct.style.display = "inline-block";
+
+          // Lógica del Modal Agregar Producto
+          const addProductModal = document.getElementById('addProductModal');
+          const closeAddProduct = document.querySelector('.close-add-product');
+          const addProductForm = document.getElementById('addProductForm');
+          const categorySelect = document.getElementById('newProdCategory');
+
+          // Abrir modal
+          btnAddProduct.addEventListener('click', async () => {
+            addProductModal.style.display = 'block';
+            // Cargar categorías si está vacío
+            if (categorySelect.options.length <= 1) {
+              try {
+                const res = await fetch('http://localhost:3000/api/categorias_menu');
+                if (res.ok) {
+                  const categories = await res.json();
+                  categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+                  categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.IdCategoria;
+                    option.textContent = cat.Nombre;
+                    categorySelect.appendChild(option);
+                  });
+                } else {
+                  categorySelect.innerHTML = '<option value="1">Bebidas</option><option value="2">Comida</option><option value="3">Postres</option>';
+                }
+              } catch (e) {
+                console.error("Error cargando categorías", e);
+                categorySelect.innerHTML = '<option value="1">Bebidas</option><option value="2">Comida</option><option value="3">Postres</option>';
+              }
+            }
+          });
+
+          // Cerrar modal
+          closeAddProduct.addEventListener('click', () => {
+            addProductModal.style.display = 'none';
+          });
+
+          window.addEventListener('click', (e) => {
+            if (e.target === addProductModal) {
+              addProductModal.style.display = 'none';
+            }
+          });
+
+          // Enviar formulario
+          addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newProduct = {
+              Nombre: document.getElementById('newProdName').value,
+              Descripcion: document.getElementById('newProdDesc').value,
+              Precio: parseFloat(document.getElementById('newProdPrice').value),
+              Stock: parseInt(document.getElementById('newProdStock').value),
+              IdCategoria: parseInt(document.getElementById('newProdCategory').value),
+              Imagen: document.getElementById('newProdImage').value // Se envía como 'Imagen', el backend lo mapea a 'ImagenUrl'
+            };
+
+            try {
+              const response = await fetch('http://localhost:3000/api/inventario/productos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newProduct)
+              });
+
+              const data = await response.json();
+
+              if (response.ok && data.success) {
+                alert('✅ Producto agregado con éxito!');
+                addProductModal.style.display = 'none';
+                addProductForm.reset();
+                loadProducts(); // Recargar la lista de productos
+              } else {
+                alert('❌ Error al agregar producto: ' + (data.message || data.error || 'Error desconocido'));
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              alert('❌ Error de conexión al guardar producto.');
+            }
+          });
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bebidas</title>
+    <!--font-awesome-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!--Hoja de estilos-->
+    <link rel="stylesheet" href="estilos.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <!--Menu de inicio-->
+        <h1><i class="fa-solid fa-mug-saucer" style="color: #ffffff;"></i> Cafetería JAVA</h1>
+        <nav>
+            <a href="../Inicio.html">Inicio</a>
+            <a href="../Gestion de pedidos.html">Pedidos</a>
+            <a href="inventario_menu.html" class="activo">Inventario</a>
+            <a href="../Panel.html">Panel</a>
+            <a href="../InicioSesion.html">Cerrar sesion</a>
+        </nav>
+    </header>
+    <main>
+        <h2 style="font-size: 32px; font-weight: bold;"><a href="inventario_menu.html"> Inventario</a> / Comidas</h2>
+        <section class="inventario">
+            <!--Sandwich de jamón y queso-->
+            <div class="producto">
+                <h3 class="nombre_del_producto">Sandwich de jamón y queso</h3>
+                <img src="imagenes/sandwich_jamon_queso.jpg" alt="Sandwich de jamón y queso">
+                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
+                <div class="botones">
+                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <!--Wrap de pollo-->
+            <div class="producto">
+                <h3 class="nombre_del_producto">Wrap de pollo</h3>
+                <img src="imagenes/wrap_pollo.jpg" alt="Wrap de pollo">
+                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
+                <div class="botones">
+                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <!--Croissant-->
+            <div class="producto">
+                <h3 class="nombre_del_producto">Croissant</h3>
+                <img src="imagenes/croissant.jpg" alt="Croissant">
+                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
+                <div class="botones">
+                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <!--Muffin-->
+            <div class="producto">
+                <h3 class="nombre_del_producto">Muffin</h3>
+                <img src="imagenes/muffin.jpg" alt="Muffin">
+                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
+                <div class="botones">
+                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <!--Brownie-->
+            <div class="producto">
+                <h3 class="nombre_del_producto">Brownie</h3>
+                <img src="imagenes/brownie.jpg" alt="Brownie">
+                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
+                <div class="botones">
+                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <!--Dona-->
+            <div class="producto">
+                <h3 class="nombre_del_producto">Dona</h3>
+                <img src="imagenes/dona.jpg" alt="Dona">
+                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
+                <div class="botones">
+                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+    <!--Modal para editar-->
+    <div id="modal_editar" class="modal">
+        <div class="modal_contenido">
+            <span class="cerrar">&times;</span>
+            <h3>Actualizar Inventario</h3>
+            <form id="form_modal">
+                <div class="form_grupo">
+                    <label>Producto:</label>
+                    <input type="text" id="nombre_producto" readonly class="input-simple">
+                </div>
+                <div class="form_grupo">
+                    <label for="cantidad_total">Cantidad disponible:</label>
+                    <input type="number" id="cantidad_total" min="0" step="1" class="input-simple" placeholder="Ingrese la cantidad">
+                </div>
+                <div class="botones_modal">
+                    <button type="button" class="btn_cancelar">Cancelar</button>
+                    <button type="submit" class="btn_guardar">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<!--Modal para ordenar-->
+    <div id="ordenModal" class="modal">
+    <div class="modal-content" style="width: 400px;">
+        <span class="close-button" style="cursor:pointer;">&times;</span>
+        <h3>Ordenar <span id="productoTitulo"></span></h3>
+        <form id="ordenForm">
+            <input type="hidden" id="ordenProductoNombre">
+            
+            <label for="ordenDestino">Correo del Proveedor:</label>
+            <input type="email" id="ordenDestino" placeholder="ejemplo@proveedor.com" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+
+            <label for="ordenCantidad">Cantidad a Ordenar:</label>
+            <input type="number" id="ordenCantidad" min="1" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+
+            <label for="ordenMotivo">Motivo/Urgencia (Opcional):</label>
+            <textarea id="ordenMotivo" rows="3" style="width: 100%; padding: 8px; margin-bottom: 20px;"></textarea>
+            
+            <button type="submit" style="background-color: #5d4037; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+                Enviar Orden por Correo
+            </button>
+        </form>
+    </div>
+
+
+    <!--Pie de página-->
+    <footer>
+        <p>© 2025 Café JAVA. Todos los derechos reservados.</p>
+        <nav>
+            <a href="../politica_privacidad.html">Política de privacidad</a> |
+            <a href="../condiciones_servicio.html">Condiciones de servicio</a> |
+            <a href="../preguntas_frecuentes.html">Preguntas frecuentes</a>
+        </nav>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
+

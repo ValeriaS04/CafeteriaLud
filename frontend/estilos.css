@@ -1,0 +1,278 @@
+/* Fuente base */
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  background: linear-gradient(to bottom, #f7f4f2, #ece1dc);
+  color: #3e2e2a;
+}
+
+/* --- ENCABEZADO --- */
+header {
+  background-color: #5a3d31;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 60px;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+header h1 {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+}
+
+header h1 i {
+    margin-right: 8px;
+    font-size: 24px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.logo .icon {
+  margin-right: 8px;
+  font-size: 22px;
+}
+
+nav a {
+  color: white;
+  margin-left: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #ffddbc;
+}
+header nav a.activo {
+    color: #ffddbc;
+}
+
+/* --- CONTENIDO --- */
+main {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.welcome h1 {
+  color: #4b2d22;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.welcome p {
+  max-width: 600px;
+  margin: 0 auto 20px;
+  color: #5a4a47;
+  line-height: 1.6;
+}
+
+/* --- LOGIN BOX --- */
+.login-box {
+  background: #fff;
+  width: 400px;
+  margin: 20px auto 60px;      /* 🔹 Espaciado arriba y abajo */
+  padding: 13px 20px;
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.1);
+  border-radius: 15px;
+  text-align: left;
+  border-top: 4px solid #a56b47;
+}
+
+.login-box h2 {
+  color: #4b2d22;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.login-box label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #3d2d29;
+}
+
+/* --- Para la contraseña --- */
+.password-container {
+  position: relative;
+}
+
+.password-container input {
+  width: 100%;
+  padding: 10px 40px 10px 10px;
+  margin-bottom: 20px;
+  border: 1px solid #d6ccc7;
+  border-radius: 8px;
+  background-color: #faf7f5;
+  transition: border-color 0.3s;
+}
+
+.password-container input:focus {
+  outline: none;
+  border-color: #a56b47;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #7a5b50;
+  user-select: none;
+  transition: transform 0.2s;
+}
+
+.toggle-password:hover {
+  transform: scale(1.1);
+}
+
+.login-box input,
+.login-box button {
+  width: 100%;
+  box-sizing: border-box; /* 🔹 Asegura que padding no altere el ancho total */
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+/* Estilo del input */
+.login-box input {
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #d6ccc7;
+  background-color: #faf7f5;
+  transition: border-color 0.3s;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #a56b47;
+}
+
+/* Estilo del botón */
+.login-box button {
+  padding: 10px; /* 🔹 Igual al input */
+  background-color: #5a3d31;
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.login-box button:hover {
+  background-color: #7a4e38;
+  transform: scale(1.03);
+}
+
+/* --- PIE DE PÁGINA --- */
+footer {
+  background-color: #5a3d31;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 2px;
+  font-size: 13px;
+  position: fixed;
+  bottom: 0;        /* para el footer */
+  left: 0;
+  right: 0;
+  height: auto
+}
+
+footer h3 {
+  color: #ffddbc;
+  margin-bottom: 10px;
+}
+
+footer p {
+  display: inline;
+  margin-right: 10px; /* espacio entre ellos */
+}
+
+footer a {
+  color: #ffddbc;
+  text-decoration: none;
+}
+.social {
+  display: flex;           /* Hace que los hijos estén en fila */
+  align-items: center;     /* Centra verticalmente el h3 y los íconos */
+  gap: 10px;               /* Espacio entre el h3 y los íconos */
+}
+.icons img {
+  width: 24px;                     /* Tamaño del icono */
+  height: 24px;
+}
+.social .icons a {
+  margin-right: 5px;       /* Opcional: espacio entre los íconos */
+  text-decoration: none;   /* Quita subrayado si quieres */
+  font-size: 24px;         /* Ajusta el tamaño de los íconos */
+}
+
+footer .social-icons a {
+  width: 30px;             /* Hace los iconos más pequeños */
+  height: 30px;
+  font-size: 18px;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+.icons a {
+  display: inline-flex;            /* Centra el icono dentro del círculo */
+  align-items: center;
+  justify-content: center;
+  width: 40px;                     /* Tamaño del círculo */
+  height: 40px;
+  background: #ffddbc;
+  color: #5a3d31;
+  border-radius: 50%;              /* Hace el círculo */
+  margin-right: 10px;
+  text-decoration: none;
+  transition: transform 0.3s, background 0.3s;
+}
+
+.icons a:hover {
+  background: #f5c7a0;
+  transform: translateY(-3px);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+    padding: 15px;
+  }
+
+  nav a {
+    display: inline-block;
+    margin: 10px;
+  }
+
+  .login-box {
+    width: 85%;
+  }
+
+  footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .icons a {
+    margin: 5px;
+  }
+}

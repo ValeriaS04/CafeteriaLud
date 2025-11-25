@@ -1,0 +1,222 @@
+/* Fuente base */
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  background: linear-gradient(to bottom, #f7f4f2, #ece1dc);
+  color: #3e2e2a;
+  overflow: hidden;
+}
+
+/* --- ENCABEZADO --- */
+header {
+  background-color: #5a3d31;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 60px;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+header h1 i {
+    margin-right: 8px;
+    font-size: 24px;
+}
+
+header h1 {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.logo .icon {
+  margin-right: 8px;
+  font-size: 22px;
+}
+
+nav a {
+  color: white;
+  margin-left: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+header nav a.activo {
+    color: #ffddbc;
+}
+nav a:hover {
+  color: #ffddbc;
+}
+    /* Sección principal */
+    .hero {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: url('https://images.unsplash.com/photo-1511920170033-f8396924c348?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NjYxNjV8MHwxfHNlYXJjaHwxfHxjYWZlJTIwY2Fmw7NuZXxlbnwwfHx8fDE2OTg2NDQ5NzZ8&ixlib=rb-4.0.3&q=80&w=1080') no-repeat center center/cover;
+  color: #fff;
+  text-align: center;
+  z-index: 1;
+}
+
+/* Overlay oscuro para mejorar legibilidad del texto */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+    }
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    }
+
+    /* Secciones de contenido */
+    main {
+      padding: 50px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    section {
+      margin-bottom: 50px;
+    }
+    section h2 {
+      font-size: 2rem;
+      color: #6f4e37;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    section p {
+      text-align: center;
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+
+    footer {
+  background-color: #5a3d31;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 2px;
+  font-size: 13px;
+  position: fixed;
+  bottom: 0;        /* para el footer */
+  left: 0;
+  right: 0;
+  height: auto
+}
+
+footer h3 {
+  color: #ffddbc;
+  margin-bottom: 10px;
+}
+
+footer p {
+  display: inline;
+  margin-right: 10px; /* espacio entre ellos */
+}
+
+footer a {
+  color: #ffddbc;
+  text-decoration: none;
+}
+.social {
+  display: flex;           /* Hace que los hijos estén en fila */
+  align-items: center;     /* Centra verticalmente el h3 y los íconos */
+  gap: 10px;               /* Espacio entre el h3 y los íconos */
+}
+.icons img {
+  width: 24px;                     /* Tamaño del icono */
+  height: 24px;
+}
+.social .icons a {
+  margin-right: 5px;       /* Opcional: espacio entre los íconos */
+  text-decoration: none;   /* Quita subrayado si quieres */
+  font-size: 24px;         /* Ajusta el tamaño de los íconos */
+}
+
+footer .social-icons a {
+  width: 30px;             /* Hace los iconos más pequeños */
+  height: 30px;
+  font-size: 18px;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+.icons a {
+  display: inline-flex;            /* Centra el icono dentro del círculo */
+  align-items: center;
+  justify-content: center;
+  width: 40px;                     /* Tamaño del círculo */
+  height: 40px;
+  background: #ffddbc;
+  color: #5a3d31;
+  border-radius: 50%;              /* Hace el círculo */
+  margin-right: 10px;
+  text-decoration: none;
+  transition: transform 0.3s, background 0.3s;
+}
+
+.icons a:hover {
+  background: #f5c7a0;
+  transform: translateY(-3px);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+    padding: 15px;
+  }
+
+  nav a {
+    display: inline-block;
+    margin: 10px;
+  }
+
+  .login-box {
+    width: 85%;
+  }
+
+  footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .icons a {
+    margin: 5px;
+  }
+}

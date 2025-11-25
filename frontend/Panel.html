@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Pedidos - Cafetería JAVA</title>
+    <link rel="stylesheet" href="estilin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header class="navbar">
+        <h1><i class="fa-solid fa-mug-saucer" style="color: #ffffff;"></i> Cafetería JAVA</h1>
+        <nav>
+            <a href="Inicio.html">Inicio</a>
+            <a href="Gestion de pedidos.html">Pedidos</a>
+            <a href="Inventario/inventario_menu.html">Inventario</a>
+            <a href="#" class="activo">Panel</a>
+            <a href="Usuarios.html" id="linkUsuarios" style="display:none;">Usuarios</a>
+            <a href="InicioSesion.html">Cerrar sesion</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Panel de Órdenes</h2>
+        <div class="panel-layout">
+            <section class="order-list-container">
+                <h3>Lista de Pedidos Recientes</h3>
+                <div class="order-row" style="font-weight: bold; background-color: #f0f0f0;">
+                    <div>ID</div>
+                    <div>Mesa</div>
+                    <div>Fecha</div>
+                    <div>Total</div>
+                    <div>Estado</div>
+                </div>
+                <div id="orderList">
+                    <p>Cargando pedidos...</p>
+                </div>
+            </section>
+
+            <section class="order-detail-container">
+                <h3 id="detailTitle">Detalle del Pedido</h3>
+                <div id="orderDetailContent">
+                    <p>Selecciona un pedido de la lista para ver los detalles.</p>
+                </div>
+            </section>
+
+        </div>
+        <div class="reportes-container">
+            <button id="btnReportes" class="btn-reportes" style="display:none;"> Generar Reporte de ventas</button>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Cafetería JAVA. Todos los derechos reservados.</p>
+            <div class="footer-links">
+                <a href="politica_privacidad.html">Política de privacidad</a> |
+                <a href="condiciones_servicio.html">Condiciones de servicio</a> |
+                <a href="preguntas_frecuentes.html">Preguntas frecuentes</a>
+            </div>
+        </div>
+    </footer>
+    <div id="modalReportes" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span id="closeReportes" class="close-btn">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #2c3e50;">
+                <i class="fas fa-chart-line"></i> Reporte de Ventas
+            </h2>
+            <div id="tablaReporte">
+                <p>Cargando reporte...</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const orderListDiv = document.getElementById('orderList');
+            const orderDetailContent = document.getElementById('orderDetailContent');
+
+            // Función para formatear la fecha a un formato legible
+            const formatDate = (dateString) => {
+                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                return new Date(dateString).toLocaleDateString('es-MX', options);
+            };
+
+            // 1. CARGA LA LISTA DE PEDIDOS EN LA COLUMNA IZQUIERDA
+            async function loadOrderList() {
+                try {
+                    const response = await fetch('http://localhost:3000/api/pedidos');
+                    if (!response.ok) {
+                        throw new Error('Error al cargar la lista de pedidos');
+                    }
+                    const orders = await response.json();
+                    orderListDiv.innerHTML = ''; // Limpiar mensaje de carga
+
+                    orders.forEach(order => {
+                        const row = document.createElement('div');
+                        row.className = 'order-row';
+                        row.dataset.id = order.IdPedido; // Guardar el ID para el clic
+
+                        row.innerHTML = `
+                    <div>#${order.IdPedido}</div>
+                    <div>${order.NombreCliente}</div>
+                    <div>${formatDate(order.Fecha)}</div>
+                    <div>$${parseFloat(order.Total).toFixed(2)}</div>
+                    <div class="order-status">${order.Estado}</div>;
+                `;
+
+                        // 2. AÑADE EL EVENTO CLICK
+                        row.addEventListener('click', () => {
+                            // Remover 'active' de todas las filas y añadirlo a la seleccionada
+                            document.querySelectorAll('.order-row').forEach(r => r.classList.remove('active'));
+                            row.classList.add('active');
+                            showOrderDetail(order.IdPedido, order);
+                        });
+
+                        orderListDiv.appendChild(row);
+                    });
+                } catch (error) {
+                    orderListDiv.innerHTML = `<p style="color: red;">Error: No se pudo conectar con el servidor de pedidos. (${error.message})</p>`;
+                }
+            }
+
+            // 3. CARGA LOS DETALLES DEL PEDIDO EN LA COLUMNA DERECHA
+            async function showOrderDetail(orderId, orderSummary) {
+                orderDetailContent.innerHTML = '<p>Cargando detalles...</p>';
+
+                // Obtenemos la referencia a la fila actual para actualizar su estado visual
+                const activeRow = document.querySelector(`.order-row[data-id="${orderId}"]`);
+
+                try {
+                    // Llamar a la nueva ruta para obtener el detalle de productos
+                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/detalle`);
+                    if (!response.ok) {
+                        throw new Error('Error al cargar detalles');
+                    }
+                    const details = await response.json();
+
+                    // 1. Iniciar la estructura HTML
+                    let detailsHTML = `
+            <h4>Pedido #${orderId}</h4>
+           
+            <p><strong>Mesa:</strong> ${orderSummary.NombreCliente}</p>
+            <p><strong>Estado:</strong> <span id="currentStatus">${orderSummary.Estado}</span></p>
+            <p><strong>Tomado por:</strong> ${orderSummary.NombreUsuario}</p>
+            <hr>
+           
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+                    // 2. Insertar las filas de productos (detalles)
+                    details.forEach(item => {
+                        detailsHTML += `
+                <tr>
+                    <td>${item.NombreProducto}</td>
+                    <td>x${item.Cantidad}</td>
+                    <td>$${parseFloat(item.Subtotal).toFixed(2)}</td>
+                </tr>
+            `;
+                    });
+
+                    // 3. Cerrar la tabla y añadir totales
+                    detailsHTML += `
+                </tbody>
+            </table>
+            <hr>
+            <p style="font-size: 1.2em; font-weight: bold; text-align: right;">TOTAL: $${parseFloat(orderSummary.Total).toFixed(2)}</p>
+        `;
+
+                    // 4. Añadir el botón "Completado" basado en el estado (Si el estado es 'Pendiente')
+                    if (orderSummary.Estado === 'Pendiente') {
+                        detailsHTML += `
+                <button id="completeOrderBtn"
+                        data-order-id="${orderId}"
+                        style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; width: 100%;">
+                    PEDIDO COMPLETADO
+                </button>
+            `;
+                    } else {
+                        detailsHTML += `<p style="color: green; font-weight: bold; margin-top: 15px;">✅ Pedido Finalizado.</p>`;
+                    }
+
+                    // 5. Inyectar todo el HTML y adjuntar el evento
+                    orderDetailContent.innerHTML = detailsHTML;
+
+                    const completeBtn = document.getElementById('completeOrderBtn');
+                    if (completeBtn) {
+                        completeBtn.addEventListener('click', () => {
+                            if (confirm(`¿Estás seguro de que el Pedido #${orderId} fue entregado y debe ser marcado como COMPLETADO?`)) {
+                                markOrderAsCompleted(orderId, activeRow); // Pasar la referencia de la fila
+                            }
+                        });
+                    }
+
+                } catch (error) {
+                    orderDetailContent.innerHTML = `<p style="color: red;">Error al obtener detalles: ${error.message}</p>`;
+                }
+            }
+            // 3. CARGA LOS DETALLES DEL PEDIDO EN LA COLUMNA DERECHA
+            /*async function showOrderDetail(orderId, orderSummary) {
+                orderDetailContent.innerHTML = '<p>Cargando detalles...</p>';
+                try {
+                    // Llamar a la nueva ruta para obtener el detalle de productos
+                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/detalle`);
+                    if (!response.ok) {
+                        throw new Error('Error al cargar detalles');
+                    }
+                    const details = await response.json();
+         
+                    let detailsHTML = `
+                      <h4>Pedido #${orderId}</h4>
+               
+                        <p><strong>Mesa:</strong> ${orderSummary.NombreCliente}</p>
+                        <p><strong>Estado:</strong> <span id="currentStatus">${orderSummary.Estado}</span></p>
+                        <p><strong>Tomado por:</strong> ${orderSummary.NombreUsuario}</p>
+                        <hr>
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cant.</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                       
+               
+                ${orderSummary.Estado === 'Pendiente' ? `
+                    <button id="completeOrderBtn"
+                            data-order-id="${orderId}"
+                            style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; width: 100%;">
+                        PEDIDO COMPLETADO
+                    </button>
+                ` : `<p style="color: green; font-weight: bold;">✅ Pedido Finalizado.</p>`}
+                    `;
+         
+                    details.forEach(item => {
+                        detailsHTML += `
+                            <tr>
+                                <td>${item.NombreProducto}</td>
+                                <td>x${item.Cantidad}</td>
+                                <td>$${parseFloat(item.Subtotal).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                   
+                    detailsHTML += `
+                            </tbody>
+                        </table>
+                        <hr>
+                        <p style="font-size: 1.2em; font-weight: bold; text-align: right;">TOTAL: $${parseFloat(orderSummary.Total).toFixed(2)}</p>
+                    `;
+         
+                    orderDetailContent.innerHTML = detailsHTML;
+         
+                    // 🚨 Adjuntar evento SOLO si el botón existe (si el estado es 'Pendiente')
+                    const completeBtn = document.getElementById('completeOrderBtn');
+                    if (completeBtn) {
+                        completeBtn.addEventListener('click', () => {
+                            if (confirm(`¿Estás seguro de que el Pedido #${orderId} fue entregado y debe ser marcado como COMPLETADO?`)) {
+                                markOrderAsCompleted(orderId);
+                            }
+                            });
+                    }
+         
+                        } catch (error) {
+                            orderDetailContent.innerHTML = `<p style="color: red;">Error al obtener detalles: ${error.message}</p>`;
+                        }
+         
+            }*/
+
+
+            // NUEVA FUNCIÓN: Llama a la API para cambiar el estado y actualiza el frontend
+            // 🚨 ACEPTA EL ELEMENTO DE LA FILA COMO PARÁMETRO
+            async function markOrderAsCompleted(orderId, rowElement) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/completar`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Fallo la actualización en el servidor.');
+                    }
+
+                    // 1. Ocultar la fila de la lista izquierda
+                    if (rowElement) {
+                        rowElement.style.display = 'none'; // Oculta la fila que se pasó como argumento
+                    }
+
+                    // 2. Limpiar el panel de detalles de la derecha
+                    orderDetailContent.innerHTML = '<p style="color: green; font-weight: bold;">Orden completada y archivada.</p>';
+
+                    alert(`🎉 Pedido #${orderId} marcado como COMPLETADO.`);
+
+                    // Opcional: Recargar la lista para asegurar la consistencia (aunque el display:none es suficiente)
+                    // loadOrderList();
+
+                } catch (error) {
+                    alert(`Error: No se pudo completar el pedido. ${error.message}`);
+                    console.error('Error PUT:', error);
+                }
+            }
+            // NUEVA FUNCIÓN: Llama a la API para cambiar el estado y actualiza el frontend
+            /*async function markOrderAsCompleted(orderId) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/completar`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+             
+                    if (!response.ok) {
+                        throw new Error('Fallo la actualización en el servidor.');
+                    }
+             
+                    // 1. Ocultar la fila de la lista izquierda
+                    const rowToHide = document.querySelector(`.order-row[data-id="${orderId}"]`);
+                    if (rowToHide) {
+                        rowToHide.style.display = 'none'; // Oculta la fila
+                    }
+                   
+                    // 2. Limpiar el panel de detalles de la derecha
+                    orderDetailContent.innerHTML = '<p style="color: green; font-weight: bold;">Orden completada y archivada.</p>';
+                   
+                    alert(`🎉 Pedido #${orderId} marcado como COMPLETADO.`);
+             
+                } catch (error) {
+                    alert(`Error: No se pudo completar el pedido. ${error.message}`);
+                    console.error('Error PUT:', error);
+                }
+            }*/
+
+            loadOrderList();
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const rol = localStorage.getItem("usuarioRol");
+
+            if (rol === "Administrador") {
+                document.getElementById("btnReportes").style.display = "block";
+                const linkUsuarios = document.getElementById("linkUsuarios");
+                if (linkUsuarios) linkUsuarios.style.display = "inline-block";
+            }
+        });
+
+        document.getElementById("btnReportes").addEventListener("click", loadReport);
+
+        async function loadReport() {
+            const modal = document.getElementById("modalReportes");
+            const tabla = document.getElementById("tablaReporte");
+
+            modal.style.display = "flex";
+            tabla.innerHTML = "<p>Cargando...</p>";
+
+            try {
+                const res = await fetch("http://localhost:3000/api/pedidos/completados");
+                const pedidos = await res.json();
+
+                let totalGeneral = 0;
+
+                let html = `
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Mesa</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+                pedidos.forEach(p => {
+                    totalGeneral += parseFloat(p.Total);
+
+                    html += `
+                <tr>
+                    <td>#${p.IdPedido}</td>
+                    <td>${p.NombreCliente}</td>
+                    <td>${new Date(p.Fecha).toLocaleString('es-MX')}</td>
+                    <td>$${parseFloat(p.Total).toFixed(2)}</td>
+                    <td>${p.NombreUsuario}</td>
+                </tr>
+            `;
+                });
+
+                html += `
+            </tbody>
+            </table>
+            <hr>
+            <h3 style="text-align:right; color:#5a3d31;">
+                TOTAL VENDIDO: $${totalGeneral.toFixed(2)}
+            </h3>
+        `;
+
+                tabla.innerHTML = html;
+
+            } catch (err) {
+                console.log(err);
+                tabla.innerHTML = `<p style="color:red;">Error al cargar reporte.</p>`;
+            }
+        }
+
+        document.getElementById("closeReportes").onclick = () => {
+            document.getElementById("modalReportes").style.display = "none";
+        };
+
+    </script>
+</body>
+
+</html>

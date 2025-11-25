@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería JAVA</title>
+  <link rel="stylesheet" href="estilos.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+  <!-- Encabezado -->
+  <header>
+    <h1><i class="fa-solid fa-mug-saucer" style="color: #ffffff;"></i> Cafetería JAVA</h1>
+    <nav>
+
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main>
+    <section class="welcome">
+      <h1>Bienvenido</h1>
+      <p>Disfruta de las mejores bebidas y un ambiente acogedor mientras gestionas tus pedidos e inventario de manera eficiente.</p>
+    </section>
+
+    <div class="login-box">
+      <h2>Iniciar sesión</h2>
+      <form>
+        <label for="email">Correo Electrónico</label>
+        <input type="email" id="email" placeholder="ejemplo@correo.com" required>
+
+        <label for="password">Contraseña</label>
+        <div class="password-container">
+          <input type="password" id="password" placeholder="••••••••" minlength="8" required
+         title="La contraseña debe tener al menos 8 caracteres.">
+          <span class="toggle-password" id="togglePassword">👁️</span>
+        </div>
+
+        <button type="submit">Iniciar sesión</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Pie de página -->
+  <footer>
+    <div class="contacto">
+      <h3>Contacto</h3>
+      <p>Teléfono: <a href="tel:+528672451636">+52 867 789 2930</a></p>
+      <p>Correo: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=cafeteriajav4@gmail.com">cafeteriajav4@gmail.com</a></p>
+    </div>
+
+    <div class="social">
+      <h3>Redes sociales</h3>
+      <div class="icons">
+        <a href="https://twitter.com/" title="Twitter">
+          <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="Twitter" width="24" height="24">
+        </a>
+        <a href="https://facebook.com/" title="Facebook">
+          <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook" width="24" height="24">
+        </a>
+        <a href="https://instagram.com/" title="Instagram">
+          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="24" height="24">
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script para mostrar/ocultar contraseña -->
+<script>
+  const passwordInput = document.getElementById("password");
+  const togglePassword = document.getElementById("togglePassword");
+
+  togglePassword.addEventListener("click", () => {
+    const isPassword = passwordInput.type === "password";
+    passwordInput.type = isPassword ? "text" : "password";
+    togglePassword.textContent = isPassword ? "👁️‍🗨️" : "👁️";
+  });
+
+  // Manejo del inicio de sesión
+  const loginForm = document.querySelector('form');
+  const loginButton = document.querySelector('button[type="submit"]');
+  // inicio de sesion BD
+  // REEMPLAZAR la función loginForm.addEventListener con ESTE CÓDIGO
+// (Asegúrate de mantener las líneas de definición de const passwordInput y const loginForm)
+
+loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault(); 
+    
+    // Captura los valores del formulario
+    const email = document.getElementById('email').value; 
+    const password = passwordInput.value; 
+    
+    if (!email || !password) {
+        alert('Por favor completa todos los campos');
+        return;
+    }
+
+    try {
+        // Llama a la ruta de tu API local
+        const response = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // Envía los datos que el servidor espera
+            body: JSON.stringify({ email, password }) 
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // *** INICIO DE SESIÓN EXITOSO ***
+            
+            // Guarda la información importante del usuario
+            localStorage.setItem('sesionActiva', 'true');
+            localStorage.setItem('usuarioId', data.usuario.IdUsuario);
+            localStorage.setItem('usuarioNombre', data.usuario.Nombre);
+            localStorage.setItem('usuarioRol', data.usuario.Rol);
+            
+            alert(`Bienvenido, ${data.usuario.Nombre} (${data.usuario.Rol}).`);
+
+            // Redirige al inicio de tu aplicación
+            window.location.href = 'Inicio.html'; 
+
+        } else {
+            // *** ERROR DE CREDENCIALES ***
+            // Muestra el mensaje de error enviado por el servidor
+            alert(data.message || 'Credenciales inválidas. Intenta nuevamente.');
+        }
+
+    } catch (error) {
+        console.error('Error de conexión:', error);
+        alert('Error de conexión. Asegúrate de que el servidor (node server.js) esté corriendo.');
+    }
+});
+
+
+  /*loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.querySelector('input[type="email"]').value;
+    const password = passwordInput.value;
+    
+    // Validación básica
+    if (!email || !password) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+    
+    // Validar email y contraseña (aquí puedes agregar tus credenciales)
+    // Por ahora acepta cualquier email/contraseña válidos
+    if (email.includes('@') && password.length >= 6) {
+      // Guardar sesión
+      localStorage.setItem('sesionActiva', 'true');
+      localStorage.setItem('usuarioEmail', email);
+      localStorage.setItem('usuarioNombre', email.split('@')[0]); // Opcional
+      
+      // Redirigir al panel/dashboard
+      window.location.href = 'Inicio.html'; // O la página que prefieras
+    } else {
+      alert('Credenciales inválidas. Intenta nuevamente.');
+    }
+  });*/
+</script>
+</body>
+</html>
