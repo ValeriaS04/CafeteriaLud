@@ -60,12 +60,67 @@
   </footer>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const rol = localStorage.getItem("usuarioRol");
-      if (rol === "Administrador") {
-        document.getElementById("linkUsuarios").style.display = "inline-block";
-      }
+        // 1. Controlar link de Usuarios
+        const rol = localStorage.getItem("usuarioRol");
+        if (rol === "Administrador") {
+            document.getElementById("linkUsuarios").style.display = "inline-block";
+        }
+
+        // 2. Verificar alerta de stock SOLO si viene del login
+        if (localStorage.getItem('mostrarAlertaStock') === 'true') {
+            verificarStockBajoAlInicio();
+            // Limpiar la bandera inmediatamente
+            localStorage.removeItem('mostrarAlertaStock');
+        }
     });
-  </script>
+
+    async function verificarStockBajoAlInicio() {
+        try {
+            const userRole = localStorage.getItem('usuarioRol');
+            // Solo verificar para Admin y Encargado de Inventario
+            if (userRole !== 'Administrador' && userRole !== 'Encargado de inventario') {
+                return;
+            }
+
+            const response = await fetch('http://localhost:3000/api/inventario/vistas/stock-critico');
+            if (!response.ok) return;
+            
+            const stockBajo = await response.json();
+            if (stockBajo.length > 0) {
+                mostrarAlertaStockBajo(stockBajo);
+            }
+        } catch (error) {
+            console.error('Error al verificar stock bajo:', error);
+        }
+    }
+
+    function mostrarAlertaStockBajo(stockBajo) {
+        const productosCriticos = stockBajo.filter(p => p.Estado === 'CRÍTICO');
+        const productosBajos = stockBajo.filter(p => p.Estado === 'BAJO');
+        
+        let mensaje = '🚨 ATENCIÓN - STOCK BAJO\n\n';
+        
+        if (productosCriticos.length > 0) {
+            mensaje += '🔴 PRODUCTOS CRÍTICOS:\n';
+            productosCriticos.forEach(p => {
+                mensaje += `• ${p.Nombre}: ${p.Cantidad} unidades\n`;
+            });
+            mensaje += '\n';
+        }
+        
+        if (productosBajos.length > 0) {
+            mensaje += '🟡 PRODUCTOS BAJOS:\n';
+            productosBajos.forEach(p => {
+                mensaje += `• ${p.Nombre}: ${p.Cantidad} unidades\n`;
+            });
+        }
+        
+        // Agregar mensaje final
+        mensaje += '\n⚠️ Por favor, revisa el inventario y genera las órdenes necesarias.';
+        
+        alert(mensaje);
+    }
+</script>
 </body>
 
 </html>

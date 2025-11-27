@@ -55,6 +55,8 @@ function configurarRestriccionesPorRol() {
         console.log('✅ Cajero/Mesero - Acceso básico (sin reportes)');
         if (usuariosLink) usuariosLink.style.display = 'none';
         if (btnReporteInventario) btnReporteInventario.style.display = 'none';
+        // En el bloque de Cajero/Mesero, agregar:
+        if (btnReporteInventario) btnReporteInventario.style.display = 'none';
     }
     
     // 4. ROL NO RECONOCIDO

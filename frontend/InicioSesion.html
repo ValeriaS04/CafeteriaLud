@@ -79,12 +79,8 @@
 
   // Manejo del inicio de sesión
   const loginForm = document.querySelector('form');
-  const loginButton = document.querySelector('button[type="submit"]');
-  // inicio de sesion BD
-  // REEMPLAZAR la función loginForm.addEventListener con ESTE CÓDIGO
-// (Asegúrate de mantener las líneas de definición de const passwordInput y const loginForm)
 
-loginForm.addEventListener('submit', async function(e) {
+  loginForm.addEventListener('submit', async function(e) {
     e.preventDefault(); 
     
     // Captura los valores del formulario
@@ -120,8 +116,9 @@ loginForm.addEventListener('submit', async function(e) {
             
             alert(`Bienvenido, ${data.usuario.Nombre} (${data.usuario.Rol}).`);
 
-            // Redirige al inicio de tu aplicación
-            window.location.href = 'Inicio.html'; 
+            // SOLO UNA redirección - Configurar bandera y redirigir
+            localStorage.setItem('mostrarAlertaStock', 'true');
+            window.location.href = "Inicio.html";
 
         } else {
             // *** ERROR DE CREDENCIALES ***
@@ -133,35 +130,7 @@ loginForm.addEventListener('submit', async function(e) {
         console.error('Error de conexión:', error);
         alert('Error de conexión. Asegúrate de que el servidor (node server.js) esté corriendo.');
     }
-});
-
-
-  /*loginForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const email = document.querySelector('input[type="email"]').value;
-    const password = passwordInput.value;
-    
-    // Validación básica
-    if (!email || !password) {
-      alert('Por favor completa todos los campos');
-      return;
-    }
-    
-    // Validar email y contraseña (aquí puedes agregar tus credenciales)
-    // Por ahora acepta cualquier email/contraseña válidos
-    if (email.includes('@') && password.length >= 6) {
-      // Guardar sesión
-      localStorage.setItem('sesionActiva', 'true');
-      localStorage.setItem('usuarioEmail', email);
-      localStorage.setItem('usuarioNombre', email.split('@')[0]); // Opcional
-      
-      // Redirigir al panel/dashboard
-      window.location.href = 'Inicio.html'; // O la página que prefieras
-    } else {
-      alert('Credenciales inválidas. Intenta nuevamente.');
-    }
-  });*/
+  });
 </script>
 </body>
 </html>
