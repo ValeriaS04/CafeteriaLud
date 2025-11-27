@@ -27,14 +27,35 @@
     </header>
     <main>
         <h2 style="font-size: 32px; font-weight: bold;">Inventario</h2>
+        
         <section class="menu_inventario">
             <a href="inventario_bebidas.html"><button>Bebidas</button></a>
             <a href="inventario_comidas.html"><button>Comida</button></a>
             <a href="inventario_envases.html"><button>Envases</button></a>
             <a href="inventario_limpieza.html"><button>Limpieza</button></a>
+            
+            <!-- Botón para generar reporte -->
+            <div class="reportes-container">
+                <button id="btnReporteInventario" class="btn-reportes">
+                    <span>Generar reporte de inventario</span>
+                </button>
+            </div>
         </section>
-
     </main>
+
+    <!-- Modal para reporte de inventario -->
+    <div id="modalReporteInventario" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span id="closeReporteInventario" class="close-btn">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #2c3e50; font-size: 1.8em; font-weight: 600;">
+                <i class="fas fa-boxes"></i> Reporte de Inventario
+            </h2>
+            <div id="tablaReporteInventario">
+                <p>Cargando reporte de inventario...</p>
+            </div>
+        </div>
+    </div>
+
     <!--Pie de página-->
     <footer>
         <p>© 2025 Café JAVA. Todos los derechos reservados.</p>
