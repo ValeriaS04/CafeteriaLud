@@ -27,7 +27,7 @@ let productoNombreActual = null;
 function obtenerCategoriaActual() {
     const url = window.location.pathname;
     const nombreArchivo = url.substring(url.lastIndexOf('/') + 1);
-    
+
     const mapeoCategorias = {
         'inventario_bebidas.html': 1,  // Bebidas
         'inventario_comidas.html': 2,  // Comida
@@ -35,7 +35,7 @@ function obtenerCategoriaActual() {
         'inventario_limpieza.html': 4, // Limpieza
         'inventario_menu.html': 1      // Bebidas por defecto
     };
-    
+
     return mapeoCategorias[nombreArchivo] || 1;
 }
 
@@ -44,18 +44,18 @@ async function cargarProductos() {
     try {
         const categoriaId = obtenerCategoriaActual();
         console.log(`🔍 Cargando productos de categoría ${categoriaId}...`);
-        
+
         const response = await fetch(`${API_URL}/api/inventario/categoria/${categoriaId}`);
-        
+
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
         }
-        
+
         const productos = await response.json();
         console.log(`✅ ${productos.length} productos recibidos`);
-        
+
         actualizarCantidadesProductos(productos);
-        
+
     } catch (error) {
         console.error('❌ Error al cargar productos:', error);
         mostrarErrorCarga(error);
@@ -65,14 +65,14 @@ async function cargarProductos() {
 // Actualizar cantidades de productos existentes
 function actualizarCantidadesProductos(productos) {
     const productosExistentes = document.querySelectorAll('.producto');
-    
+
     productosExistentes.forEach(productoElement => {
         const nombreProducto = productoElement.querySelector('.nombre_del_producto')?.textContent?.trim();
-        
+
         if (!nombreProducto) return;
-        
+
         const productoBD = productos.find(p => p.NombreProducto?.trim() === nombreProducto);
-        
+
         if (productoBD) {
             const inputCantidad = productoElement.querySelector('.cantidad_producto');
             if (inputCantidad) {
@@ -80,7 +80,7 @@ function actualizarCantidadesProductos(productos) {
             }
         }
     });
-    
+
     agregarEventListeners();
 }
 
@@ -90,11 +90,11 @@ async function obtenerIdProducto(nombreProducto) {
         const categoriaId = obtenerCategoriaActual();
         const response = await fetch(`${API_URL}/api/inventario/categoria/${categoriaId}`);
         const productos = await response.json();
-        
-        const producto = productos.find(p => 
+
+        const producto = productos.find(p =>
             p.NombreProducto?.trim().toLowerCase() === nombreProducto.trim().toLowerCase()
         );
-        
+
         return producto ? producto.IdInventario : null;
     } catch (error) {
         console.error('Error al obtener ID del producto:', error);
@@ -106,13 +106,13 @@ async function obtenerIdProducto(nombreProducto) {
 async function obtenerConfiguracionProducto(idProducto) {
     try {
         const response = await fetch(`${API_URL}/api/inventario/producto/${idProducto}`);
-        
+
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             return {
                 id: data.producto.IdInventario,
@@ -133,36 +133,36 @@ async function obtenerConfiguracionProducto(idProducto) {
 async function abrirModal(nombreProducto) {
     try {
         console.log(`📝 Abriendo modal para producto: ${nombreProducto}`);
-        
+
         // Obtener ID del producto por nombre
         const idProducto = await obtenerIdProducto(nombreProducto);
-        
+
         if (!idProducto) {
             alert('Error: No se encontró el producto en la base de datos');
             return;
         }
-        
+
         const config = await obtenerConfiguracionProducto(idProducto);
-        
+
         if (!config) {
             alert('No se pudieron cargar los datos del producto');
             return;
         }
-        
+
         productoNombreActual = nombreProducto;
-        
+
         // Configurar modal
         inputNombreProducto.value = config.nombre;
         cantidadTotalInput.value = config.cantidadActual;
-        
+
         // Enfocar el input de cantidad
         setTimeout(() => {
             cantidadTotalInput.focus();
             cantidadTotalInput.select();
         }, 100);
-        
+
         modal.style.display = 'flex';
-        
+
     } catch (error) {
         console.error('❌ Error al abrir modal:', error);
         alert('Error al abrir el editor: ' + error.message);
@@ -173,15 +173,15 @@ async function abrirModal(nombreProducto) {
 async function actualizarProducto(nombreProducto, nuevaCantidad) {
     try {
         console.log(`🔄 Actualizando producto: ${nombreProducto} a cantidad: ${nuevaCantidad}`);
-        
+
         // Obtener ID del producto
         const idProducto = await obtenerIdProducto(nombreProducto);
-        
+
         if (!idProducto) {
             alert('Error: No se encontró el producto en la base de datos');
             return;
         }
-        
+
         const response = await fetch(`${API_URL}/api/inventario/producto/${idProducto}`, {
             method: 'PUT',
             headers: {
@@ -193,10 +193,10 @@ async function actualizarProducto(nombreProducto, nuevaCantidad) {
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
             console.log('✅ Producto actualizado correctamente');
-            
+
             // Actualizar la cantidad en el DOM
             if (productoActual) {
                 const inputCantidad = productoActual.querySelector('.cantidad_producto');
@@ -204,15 +204,15 @@ async function actualizarProducto(nombreProducto, nuevaCantidad) {
                     inputCantidad.value = nuevaCantidad;
                 }
             }
-            
+
             // Cerrar modal y mostrar éxito
             cerrarModal();
             alert('¡Inventario actualizado correctamente!');
-            
+
         } else {
             throw new Error(data.message || 'Error al actualizar el producto');
         }
-        
+
     } catch (error) {
         console.error('❌ Error al actualizar producto:', error);
         alert('Error al actualizar el producto: ' + error.message);
@@ -226,7 +226,7 @@ function abrirModalOrdenar(nombreProducto) {
     if (productoTitulo && ordenProductoNombre) {
         productoTitulo.textContent = nombreProducto;
         ordenProductoNombre.value = nombreProducto;
-        document.getElementById('ordenCantidad').value = 1; 
+        document.getElementById('ordenCantidad').value = 1;
         document.getElementById('ordenMotivo').value = '';
         ordenModal.style.display = 'flex';
     } else {
@@ -277,7 +277,7 @@ function cerrarModalOrdenar() {
 
 function agregarEventListeners() {
     console.log('🔗 Configurando event listeners...');
-    
+
     //logica de control de acceso
     const userRole = localStorage.getItem('usuarioRol');
     const rolesNoPermitidos = ['Cajero/Mesero']; // Roles que solo deben ver
@@ -287,26 +287,26 @@ function agregarEventListeners() {
             btn.disabled = true;
             btn.style.opacity = '0.4'; // Retroalimentación visual de que está deshabilitado
             btn.style.cursor = 'not-allowed';
-            
+
             // Opcional: Si el botón intenta abrir un modal, esto lo previene:
             btn.onclick = (e) => {
                 e.stopPropagation(); // Prevenir que el evento suba
                 alert('Acceso de modificación restringido al rol de ' + userRole);
             };
         });
-        
+
         // Finalizar la función aquí, sin adjuntar los event listeners originales
-        return; 
+        return;
     }
     //fiin
 
     // Botones editar
     const botonesEditar = document.querySelectorAll('.btn_editar');
     botonesEditar.forEach((boton) => {
-        boton.onclick = function() {
+        boton.onclick = function () {
             productoActual = this.closest('.producto');
             const nombreProducto = productoActual.querySelector('.nombre_del_producto')?.textContent?.trim();
-            
+
             if (nombreProducto) {
                 abrirModal(nombreProducto);
             } else {
@@ -314,14 +314,14 @@ function agregarEventListeners() {
             }
         };
     });
-    
+
     // Botones ordenar
     const botonesOrdenar = document.querySelectorAll('.btn_ordenar');
     botonesOrdenar.forEach(boton => {
-        boton.onclick = function() {
+        boton.onclick = function () {
             const productoElement = this.closest('.producto');
             const nombreProducto = productoElement.querySelector('.nombre_del_producto')?.textContent?.trim();
-            
+
             if (nombreProducto) {
                 abrirModalOrdenar(nombreProducto);
             } else {
@@ -332,16 +332,16 @@ function agregarEventListeners() {
 }
 
 // Event listeners del modal editar
-formModal.addEventListener('submit', async function(e) {
+formModal.addEventListener('submit', async function (e) {
     e.preventDefault();
-    
+
     if (!productoNombreActual) {
         alert('Error: No hay un producto seleccionado');
         return;
     }
 
     const nuevaCantidad = parseInt(cantidadTotalInput.value);
-    
+
     if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
         alert('Por favor ingrese una cantidad válida (número entero positivo)');
         return;
@@ -366,7 +366,7 @@ if (ordenForm) {
             cantidad: parseInt(cantidad, 10),
             motivo,
             destino,
-            usuarioNombre 
+            usuarioNombre
         };
 
         await enviarOrdenCorreo(orderData);
@@ -378,7 +378,7 @@ spanCerrar?.addEventListener('click', cerrarModal);
 btnCancelar?.addEventListener('click', cerrarModal);
 closeButton?.addEventListener('click', cerrarModalOrdenar);
 
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     if (event.target === modal) {
         cerrarModal();
     }
@@ -404,13 +404,19 @@ function mostrarErrorCarga(error) {
 
 // ==================== INICIALIZACIÓN ====================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('🚀 Inicializando sistema de inventario...');
-    
+
     // Cargar productos después de que el DOM esté listo
     setTimeout(() => {
         cargarProductos();
     }, 100);
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    const rol = localStorage.getItem("usuarioRol");
+    if (rol === "Administrador") {
+        document.getElementById("linkUsuarios").style.display = "inline-block";
+    }
+});
 
