@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
     <link rel="stylesheet" href="estilos.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-
 <body>
     <header>
         <!--Menu de inicio-->
@@ -21,7 +19,6 @@
             <a href="../Gestion de pedidos.html">Pedidos</a>
             <a href="inventario_menu.html" class="activo">Inventario</a>
             <a href="../Panel.html">Panel</a>
-            <a href="../Usuarios.html" id="linkUsuarios" style="display:none;">Usuarios</a>
             <a href="../InicioSesion.html">Cerrar sesion</a>
         </nav>
     </header>
@@ -93,8 +90,7 @@
                 </div>
                 <div class="form_grupo">
                     <label for="cantidad_total">Cantidad disponible:</label>
-                    <input type="number" id="cantidad_total" min="0" step="1" class="input-simple"
-                        placeholder="Ingrese la cantidad">
+                    <input type="number" id="cantidad_total" min="0" step="1" class="input-simple" placeholder="Ingrese la cantidad">
                 </div>
                 <div class="botones_modal">
                     <button type="button" class="btn_cancelar">Cancelar</button>
@@ -104,40 +100,37 @@
         </div>
     </div>
 
-    <!--Modal para ordenar-->
+<!--Modal para ordenar-->
     <div id="ordenModal" class="modal">
-        <div class="modal-content" style="width: 400px;">
-            <span class="close-button" style="cursor:pointer;">&times;</span>
-            <h3>Ordenar <span id="productoTitulo"></span></h3>
-            <form id="ordenForm">
-                <input type="hidden" id="ordenProductoNombre">
+    <div class="modal-content" style="width: 400px;">
+        <span class="close-button" style="cursor:pointer;">&times;</span>
+        <h3>Ordenar <span id="productoTitulo"></span></h3>
+        <form id="ordenForm">
+            <input type="hidden" id="ordenProductoNombre">
+            
+            <label for="ordenDestino">Correo del Proveedor:</label>
+            <input type="email" id="ordenDestino" placeholder="ejemplo@proveedor.com" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
 
-                <label for="ordenDestino">Correo del Proveedor:</label>
-                <input type="email" id="ordenDestino" placeholder="ejemplo@proveedor.com" required
-                    style="width: 100%; padding: 8px; margin-bottom: 10px;">
+            <label for="ordenCantidad">Cantidad a Ordenar:</label>
+            <input type="number" id="ordenCantidad" min="1" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
 
-                <label for="ordenCantidad">Cantidad a Ordenar:</label>
-                <input type="number" id="ordenCantidad" min="1" required
-                    style="width: 100%; padding: 8px; margin-bottom: 10px;">
+            <label for="ordenMotivo">Motivo/Urgencia (Opcional):</label>
+            <textarea id="ordenMotivo" rows="3" style="width: 100%; padding: 8px; margin-bottom: 20px;"></textarea>
+            
+            <button type="submit" style="background-color: #5d4037; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+                Enviar Orden por Correo
+            </button>
+        </form>
+    </div>
 
-                <label for="ordenMotivo">Motivo/Urgencia (Opcional):</label>
-                <textarea id="ordenMotivo" rows="3" style="width: 100%; padding: 8px; margin-bottom: 20px;"></textarea>
-
-                <button type="submit"
-                    style="background-color: #5d4037; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
-                    Enviar Orden por Correo
-                </button>
-            </form>
-        </div>
-
-        <!--Pie de página-->
-        <footer>
-            <p>© 2025 Café JAVA. Todos los derechos reservados.</p>
-            <nav>
-                <a href="../politica_privacidad.html">Política de privacidad</a> |
-                <a href="../condiciones_servicio.html">Condiciones de servicio</a> |
-                <a href="../preguntas_frecuentes.html">Preguntas frecuentes</a>
-            </nav>
-        </footer>
-        <script src="script.js"></script>
+    <!--Pie de página-->
+    <footer>
+        <p>© 2025 Café JAVA. Todos los derechos reservados.</p>
+        <nav>
+            <a href="../politica_privacidad.html">Política de privacidad</a> |
+            <a href="../condiciones_servicio.html">Condiciones de servicio</a> |
+            <a href="../preguntas_frecuentes.html">Preguntas frecuentes</a>
+        </nav>
+    </footer>
+    <script src="script.js"></script>
 </body>
