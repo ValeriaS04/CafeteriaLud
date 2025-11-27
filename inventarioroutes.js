@@ -309,5 +309,107 @@ module.exports = function(pool) {
     }
   });
 
+  // 8️⃣ Obtener inventario completo usando la vista vw_inventario_completo
+  router.get('/vistas/inventario-completo', async (req, res) => {
+    try {
+      console.log('📊 Solicitando inventario completo desde vista');
+      
+      const query = 'SELECT * FROM vw_inventario_completo ORDER BY Categoria, Nombre';
+      const [results] = await pool.query(query);
+      
+      console.log(`✅ Vista cargada: ${results.length} productos encontrados`);
+      
+      res.json(results);
+    } catch (error) {
+      console.error('❌ Error al cargar vista de inventario completo:', error);
+      
+      // Si la vista no existe, proporcionar un mensaje útil
+      if (error.code === 'ER_NO_SUCH_TABLE' || error.message.includes('vw_inventario_completo')) {
+        return res.status(404).json({
+          success: false,
+          message: 'La vista vw_inventario_completo no existe. Ejecuta el SQL de creación de vistas en la base de datos.',
+          error: error.message
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: 'Error al cargar el inventario completo',
+        error: error.message
+      });
+    }
+  });
+
+  // 9️⃣ Obtener stock crítico usando la vista vw_stock_critico
+  router.get('/vistas/stock-critico', async (req, res) => {
+    try {
+      console.log('🔔 Solicitando stock crítico desde vista');
+      
+      const query = 'SELECT * FROM vw_stock_critico ORDER BY Cantidad ASC';
+      const [results] = await pool.query(query);
+      
+      console.log(`✅ Vista de stock crítico cargada: ${results.length} productos con stock bajo`);
+      
+      res.json(results);
+    } catch (error) {
+      console.error('❌ Error al cargar vista de stock crítico:', error);
+      
+      // Si la vista no existe, proporcionar un mensaje útil
+      if (error.code === 'ER_NO_SUCH_TABLE' || error.message.includes('vw_stock_critico')) {
+        return res.status(404).json({
+          success: false,
+          message: 'La vista vw_stock_critico no existe. Ejecuta el SQL de creación de vistas en la base de datos.',
+          error: error.message
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: 'Error al cargar el stock crítico',
+        error: error.message
+      });
+    }
+  });
+
+  // 🔟 Fallback: Obtener stock bajo sin usar vistas (método alternativo)
+  router.get('/stock-bajo', async (req, res) => {
+    try {
+      console.log('📉 Solicitando productos con stock bajo (método alternativo)');
+      
+      const query = `
+        SELECT 
+          i.IdInventario as ID,
+          i.NombreProducto as Nombre,
+          c.Nombre as Categoria,
+          i.Cantidad as Cantidad,
+          CASE 
+            WHEN i.Cantidad <= 2 THEN 'CRÍTICO'
+            WHEN i.Cantidad <= 5 THEN 'BAJO'
+            ELSE 'NORMAL'
+          END as Estado
+        FROM inventario i
+        JOIN categorias_inventario c ON i.IdCategoriaInventario = c.IdCategoriaInventario
+        WHERE i.Cantidad < 5
+        ORDER BY i.Cantidad ASC
+      `;
+      
+      const [results] = await pool.query(query);
+      console.log(`✅ ${results.length} productos con stock bajo encontrados`);
+      
+      res.json(results);
+    } catch (error) {
+      console.error('❌ Error al obtener stock bajo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener productos con stock bajo',
+        error: error.message
+      });
+    }
+  });
+
+  return router;
+};
+  });
+
   return router;
 };
