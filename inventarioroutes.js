@@ -409,7 +409,3 @@ module.exports = function(pool) {
 
   return router;
 };
-  });
-
-  return router;
-};
