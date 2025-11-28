@@ -451,6 +451,23 @@ app.delete('/api/usuarios/:id', async (req, res) => {
   }
 });
 
+// --- RUTA: REPORTE TOP 5 PRODUCTOS (Llama al SP) ---
+app.post('/api/reportes/top', async (req, res) => {
+    const { inicio, fin } = req.body; 
+    
+    try {
+        // Ejecutamos el procedimiento almacenado
+        const [rows] = await pool.query('CALL sp_top_productos(?, ?)', [inicio, fin]);
+        
+        // MySQL devuelve el resultado en la posición 0
+        res.json(rows[0]); 
+        
+    } catch (error) {
+        console.error('Error en reporte top:', error);
+        res.status(500).json({ error: 'Error al generar el reporte' });
+    }
+});
+
 // ====================================================================
 // PASO 4: INICIAR EL SERVIDOR
 // ====================================================================

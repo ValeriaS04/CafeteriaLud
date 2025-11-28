@@ -199,13 +199,14 @@ footer nav a:hover {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 15px;
+  gap: 15px;
 }
  
 /* Botón pequeño y elegante */
 .btn-reportes {
   background-color: #5a3d31;
   color: white;
-  padding: 10px 100px;
+  padding: 10px 20px;
   border: none;
   border-radius: 6px;
   cursor: pointer;

@@ -51,6 +51,8 @@
         </div>
         <div class="reportes-container">
             <button id="btnReportes" class="btn-reportes" style="display:none;"> Generar Reporte de ventas</button>
+            <button id="btnTopProductos" class="btn-reportes" style="background-color: #5a3d31; margin-right: 10px;">
+            <i class="fa-solid fa-trophy"></i> Top 5 Productos mas vendidos
         </div>
     </main>
 
@@ -64,6 +66,7 @@
             </div>
         </div>
     </footer>
+
     <div id="modalReportes" class="modal" style="display:none;">
         <div class="modal-content">
             <span id="closeReportes" class="close-btn">&times;</span>
@@ -75,6 +78,43 @@
             </div>
         </div>
     </div>
+
+    <div id="modalTopProductos" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 700px;">
+            <span id="closeTopProductos" class="close-btn">&times;</span>
+            <h3 style="color: #5a3d31; border-bottom: 2px solid #5a3d31; padding-bottom: 10px;">
+                <i class="fa-solid fa-trophy"></i> Top 5 Productos Más Vendidos
+            </h3>
+
+            <div style="background: #f9f9f9; padding: 15px; margin: 20px 0; display: flex; gap: 10px; align-items: flex-end;">
+                <div>
+                    <label style="font-weight: bold; font-size: 0.9em;">Desde:</label>
+                    <input type="date" id="fechaInicio" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                <div>
+                    <label style="font-weight: bold; font-size: 0.9em;">Hasta:</label>
+                    <input type="date" id="fechaFin" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                <button onclick="cargarTopProductos()" style="background-color: #5a3d31; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Consultar
+                </button>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f1f1f1;">
+                        <th style="padding: 10px; text-align: left;">Producto</th>
+                        <th style="padding: 10px; text-align: center;">Unidades</th>
+                        <th style="padding: 10px; text-align: right;">Ingresos</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaTopProductos">
+                    <tr><td colspan="3" style="text-align: center; padding: 20px;">Selecciona fechas.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const orderListDiv = document.getElementById('orderList');
@@ -418,6 +458,67 @@
             document.getElementById("modalReportes").style.display = "none";
         };
 
+        // --- LÓGICA TOP 5 PRODUCTOS ---
+        const modalTop = document.getElementById("modalTopProductos");
+        const btnTop = document.getElementById("btnTopProductos");
+        const closeTop = document.getElementById("closeTopProductos");
+
+        // Abrir/Cerrar
+        if(btnTop) btnTop.onclick = () => {
+            modalTop.style.display = "flex";
+            // Fechas por defecto (Mes actual)
+            const hoy = new Date();
+            const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            document.getElementById('fechaFin').value = hoy.toISOString().split('T')[0];
+            document.getElementById('fechaInicio').value = primerDia.toISOString().split('T')[0];
+        };
+        if(closeTop) closeTop.onclick = () => modalTop.style.display = "none";
+
+        window.onclick = (event) => {
+            if (event.target == modalTop) modalTop.style.display = "none";
+        };
+
+        // Función de Consulta
+        async function cargarTopProductos() {
+            const fInicio = document.getElementById('fechaInicio').value;
+            const fFin = document.getElementById('fechaFin').value;
+            const tbody = document.getElementById('tablaTopProductos');
+            
+            if (!fInicio || !fFin) { alert("Selecciona ambas fechas."); return; }
+            
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Calculando...</td></tr>';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/reportes/top', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ inicio: fInicio, fin: fFin })
+                });
+
+                const lista = await response.json();
+                tbody.innerHTML = ''; 
+
+                if (lista.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hubo ventas.</td></tr>';
+                    return;
+                }
+
+                lista.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    let medalla = index === 0 ? '' : (index === 1 ? '' : (index === 2 ? '' : ''));
+                    
+                    row.innerHTML = `
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${medalla}${item.Nombre}</td>
+                        <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.TotalVendidos}</td>
+                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold;">$${parseFloat(item.DineroGenerado).toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = '<tr><td colspan="3" style="color: red; text-align: center;">Error al consultar.</td></tr>';
+            }
+        }
     </script>
 </body>
 
