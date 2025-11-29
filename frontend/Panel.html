@@ -477,18 +477,33 @@ const userRole = localStorage.getItem('usuarioRol');
         const closeTop = document.getElementById("closeTopProductos");
 
         // Abrir/Cerrar
-        if(btnTop) btnTop.onclick = () => {
-            modalTop.style.display = "flex";
-            // Fechas por defecto (Mes actual)
-            const hoy = new Date();
-            const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-            document.getElementById('fechaFin').value = hoy.toISOString().split('T')[0];
-            document.getElementById('fechaInicio').value = primerDia.toISOString().split('T')[0];
-        };
+        if (btnTop) {
+            btnTop.onclick = function() {
+                modalTop.style.display = "flex";
+
+                // A. Calcular fechas (Hoy y Ayer)
+                const hoy = new Date();
+                const ayer = new Date();
+                ayer.setDate(hoy.getDate() - 1); // Restamos 1 día
+
+                // B. Formatear para los inputs (YYYY-MM-DD)
+                const strHoy = hoy.toISOString().split('T')[0];
+                const strAyer = ayer.toISOString().split('T')[0];
+
+                // C. Poner las fechas en los cuadritos
+                document.getElementById('fechaFin').value = strHoy;
+                document.getElementById('fechaInicio').value = strAyer;
+
+                // D. ¡CONSULTAR AUTOMÁTICAMENTE!
+                cargarTopProductos();
+            }
+        }
         if(closeTop) closeTop.onclick = () => modalTop.style.display = "none";
 
         window.onclick = (event) => {
             if (event.target == modalTop) modalTop.style.display = "none";
+            const modalReportes = document.getElementById("modalReportes");
+            if (modalReportes && event.target == modalReportes) modalReportes.style.display = "none";
         };
 
         // Función de Consulta
