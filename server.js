@@ -468,6 +468,40 @@ app.post('/api/reportes/top', async (req, res) => {
     }
 });
 
+// ==================================================
+// RUTAS DE GESTIÓN DE CLIENTES (PARA PEDIDOS)
+// ==================================================
+
+// 1. Buscar clientes por nombre
+app.get('/api/clientes/buscar', async (req, res) => {
+    const { nombre } = req.query;
+    try {
+        // Busca clientes que coincidan con el nombre (LIKE)
+        const [clientes] = await pool.query(
+            'SELECT * FROM Clientes WHERE Nombre LIKE ?', 
+            [`%${nombre}%`]
+        );
+        res.json(clientes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al buscar cliente' });
+    }
+});
+
+// 2. Registrar un nuevo cliente rápido
+app.post('/api/clientes', async (req, res) => {
+    const { nombre, email } = req.body;
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO Clientes (Nombre, Email) VALUES (?, ?)',
+            [nombre, email || null] // El email es opcional
+        );
+        res.json({ success: true, id: result.insertId, nombre: nombre });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error al registrar cliente' });
+    }
+});
 // ====================================================================
 // PASO 4: INICIAR EL SERVIDOR
 // ====================================================================

@@ -1,5 +1,18 @@
 // ==================== CONFIGURACIÓN ====================
 const API_URL = 'http://localhost:3000';
+//validacion encargado inventario
+const userRole = localStorage.getItem('usuarioRol');
+
+      if (userRole === 'Encargado de inventario') {
+          // Encargado de Inventario (Debe ver: Inicio, Inventario, Cerrar Sesión)
+          const pedidosLink = document.querySelector('nav a[href*="Gestion de pedidos.html"]');
+          const panelLink = document.querySelector('nav a[href*="Panel.html"]');
+          
+          // 2. Restricción del Encargado: Ocultar Pedidos y Panel
+          if (pedidosLink) pedidosLink.style.display = 'none';
+          if (panelLink) panelLink.style.display = 'none';
+      }
+      //fin validacion
 
 // ==================== ELEMENTOS DEL DOM ====================
 const modal = document.getElementById('modal_editar');

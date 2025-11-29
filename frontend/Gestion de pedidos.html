@@ -40,7 +40,7 @@
 
     <div class="actions">
       <!--seleccionar mesa-->
-      <div class="mesa-selector-container">
+      <!---<div class="mesa-selector-container">
         <label for="selectMesa">Mesa/Cliente</label>
         <select id="selectMesa">
           <option value="1">Mesa 1</option>
@@ -48,7 +48,7 @@
           <option value="3">Mesa 3</option>
           <option value="4">Mesa 4</option>
         </select>
-      </div>
+      </div> --->
     </div>
   </main>
 
@@ -121,389 +121,527 @@
       </form>
     </div>
   </div>
+  <div id="clienteInitModal" class="modal" style="display: flex;">
+    <div class="modal-content" style="max-width: 600px;">
+        <h2 style="color: #6d4c41;">Seleccionar Cliente</h2>
+        <p>Identifica la orden antes de comenzar.</p>
+        
+        <div id="estadoSeleccionado" style="display: none; background-color: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #a5d6a7; margin-bottom: 20px; text-align: center;">
+            <p style="margin: 0; font-size: 1.1em; color: #2e7d32;">
+                Cliente: <strong><span id="lblClienteSeleccionado"></span></strong>
+            </p>
+            <button id="btnCancelarSeleccion" style="margin-top: 10px; background: none; border: none; color: #c62828; text-decoration: underline; cursor: pointer;">
+                Cambiar Cliente
+            </button>
+        </div>
+
+        <div id="contenedorBusqueda">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="busquedaCliente" placeholder="Buscar cliente por nombre..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                <button id="btnBuscarCliente" class="add" style="padding: 10px 15px;">🔍 Buscar</button>
+            </div>
+
+            <div id="listaResultados" style="border: 1px solid #ddd; max-height: 120px; overflow-y: auto; display: none; margin-bottom: 15px; border-radius: 4px;">
+                </div>
+
+            <div class="form-group" style="border-top: 1px solid #eee; padding-top: 15px; margin-bottom: 15px;">
+                <label for="selectMesaRapida" style="font-weight: bold;">O seleccionar Mesa Rápida:</label>
+                <select id="selectMesaRapida" style="width: 100%; padding: 10px; margin-top: 5px;">
+                    <option value="">-- Seleccionar Mesa --</option>
+                    <option value="1">Mesa 1</option>
+                    <option value="2">Mesa 2</option>
+                    <option value="3">Mesa 3</option>
+                    <option value="4">Mesa 4</option>
+                    <option value="5">Mesa 5</option>
+                    <option value="6">Para Llevar/Barra</option>
+                </select>
+            </div>
+
+            <div id="formNuevoCliente" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                <h4 style="margin-top: 0; color: #d35400;">Registrar Nuevo Cliente</h4>
+                <input type="text" id="nuevoNombreCliente" placeholder="Nombre completo" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="email" id="nuevoEmailCliente" placeholder="Correo (Opcional)" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                <button id="btnRegistrarCliente" class="ok" style="width: 100%;">Registrar y Seleccionar</button>
+                <button id="btnCancelarRegistro" style="width: 100%; margin-top: 5px; background: none; border: none; color: #666; cursor: pointer;">Cancelar registro</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; gap: 10px;">
+            <button id="btnSalirPedidos" class="delete" style="background-color: #7f8c8d;">
+                Salir al Inicio
+            </button>
+            <button id="btnConfirmarMesa" class="ok" disabled style="opacity: 0.5; cursor: not-allowed;">
+                Confirmar y Continuar
+            </button>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="idClienteFinal">
 
   <script>
-    // Variable para almacenar los productos del pedido
-    let pedidoActual = [];
-    let allProducts = []; // Almacena todos los productos del menú
+//validacion encargado inventario
+const userRole = localStorage.getItem('usuarioRol');
 
-    // Función para cargar productos desde el backend
-    async function loadProducts() {
-      try {
-        const response = await fetch('http://localhost:3000/api/menu');
-        if (!response.ok) throw new Error('Error al cargar el menú');
-        allProducts = await response.json();
-        renderProducts(allProducts);
-      } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error al cargar los productos. Asegúrate de que el servidor esté corriendo.');
+      if (userRole === 'Encargado de inventario') {
+          // Encargado de Inventario (Debe ver: Inicio, Inventario, Cerrar Sesión)
+          const pedidosLink = document.querySelector('nav a[href*="Gestion de pedidos.html"]');
+          const panelLink = document.querySelector('nav a[href*="Panel.html"]');
+          
+          // 2. Restricción del Encargado: Ocultar Pedidos y Panel
+          if (pedidosLink) pedidosLink.style.display = 'none';
+          if (panelLink) panelLink.style.display = 'none';
       }
-    }
+      //fin validacion
+    // ==========================================
+    // 1. VARIABLES GLOBALES
+    // ==========================================
+    let pedidoActual = [];
+    let allProducts = [];
+    let clienteSeleccionadoNombre = "";
 
-    // Función para renderizar las tarjetas de productos
-    function renderProducts(products) {
-      const container = document.getElementById('productsContainer');
-      container.innerHTML = ''; // Limpiar contenedor
-
-      products.forEach(product => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.id = product.IdProducto;
-
-        // Usar imagen por defecto si no hay URL
-        const imgSrc = product.ImagenUrl || 'https://via.placeholder.com/150?text=Sin+Imagen';
-
-        card.innerHTML = `
-          <img src="${imgSrc}" alt="${product.Nombre}" onerror="this.src='https://via.placeholder.com/150?text=Error+Imagen'">
-          <h3 class="producto-nombre">${product.Nombre}</h3>
-          <p class="producto-precio">Precio: $${product.Precio}</p>
-          <div class="cantidad-control">
-            <label for="cantidad-${product.IdProducto}">Cantidad:</label>
-            <input type="number" value="0" min="0" class="producto-cantidad" id="cantidad-${product.IdProducto}">
-            <div class="buttons">
-              <button class="edit">✏️</button>
-              <button class="ok">✔</button>
-              <button class="delete">❌</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // Función para limpiar el pedido y resetear la interfaz
-    function cancelarPedidoYLimpiar() {
-      // 1. Vaciar el array del pedido en memoria
-      pedidoActual = [];
-
-      // 2. Resetear todas las cantidades de los inputs de producto a 0
-      document.querySelectorAll('.producto-cantidad').forEach(input => {
-        input.value = 0;
-      });
-
-      // 🚨 CLAVE: Habilitar TODOS los botones OK para el próximo pedido
-      document.querySelectorAll('.ok').forEach(button => {
-        button.disabled = false;
-        button.style.backgroundColor = ''; // Restablecer color
-        button.style.cursor = 'pointer';
-      });
-
-      // 3. Ocultar el modal
-      resumenModal.style.display = 'none';
-
-      // 4. Notificar al usuario
-      alert('❌ Pedido Cancelado. El carrito ha sido vaciado.');
-    }
-
-    // Referencias al Modal
+    // Referencias DOM Globales
     const resumenModal = document.getElementById('resumenModal');
     const listaPedidoModal = document.getElementById('listaPedidoModal');
     const totalModal = document.getElementById('totalModal');
     const closeButton = document.querySelector('.close-button');
     const cerrarYConfirmarButton = document.getElementById('cerrarYConfirmar');
-    // Referencias al Nuevo Botón
     const seguirAgregandoButton = document.getElementById('seguirAgregando');
+    
+    // Referencias Modal Cliente Inicial
+    const clienteInitModal = document.getElementById('clienteInitModal');
+    const inputBusqueda = document.getElementById('busquedaCliente');
+    const btnBuscar = document.getElementById('btnBuscarCliente');
+    const listaResultados = document.getElementById('listaResultados');
+    const formNuevo = document.getElementById('formNuevoCliente');
+    const selectMesaRapida = document.getElementById('selectMesaRapida');
+    const btnRegistrar = document.getElementById('btnRegistrarCliente');
+    const btnConfirmarMesa = document.getElementById('btnConfirmarMesa');
+    const btnSalirPedidos = document.getElementById('btnSalirPedidos');
+    const inputIdFinal = document.getElementById('idClienteFinal');
+    
+    // Referencias Modal Agregar Producto (Admin)
+    const addProductModal = document.getElementById('addProductModal');
+    const closeAddProduct = document.querySelector('.close-add-product');
+    const addProductForm = document.getElementById('addProductForm');
+    const categorySelect = document.getElementById('newProdCategory');
+    const btnAddProduct = document.getElementById("btnAddProduct");
 
-    // Función para actualizar y mostrar el Modal
-    function mostrarResumenPedido() {
-      listaPedidoModal.innerHTML = ''; // Limpiar lista anterior
-      let total = 0;
 
-      if (pedidoActual.length === 0) {
-        listaPedidoModal.innerHTML = '<li>No hay productos en el pedido.</li>';
-        totalModal.textContent = '$0.00';
-      } else {
-        pedidoActual.forEach(item => {
-          // Convertir precio a número decimal y calcular subtotal
-          const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
-          const subtotal = precioNumero * item.cantidad;
-          total += subtotal;
+    // ==========================================
+    // 2. FUNCIONES AUXILIARES
+    // ==========================================
 
-          const li = document.createElement('li');
-          li.innerHTML = `
-    ${item.nombre} (x${item.cantidad}) -
-    $${precioNumero.toFixed(2)} c/u =
-    $${subtotal.toFixed(2)}
-    `;
-          listaPedidoModal.appendChild(li);
-        });
-
-        totalModal.textContent = `$${total.toFixed(2)}`;
-      }
-
-      resumenModal.style.display = 'block'; // Mostrar el modal
-    }
-
-    // 🚨 CÓDIGO CORREGIDO: Lógica para CANCELAR el Pedido al presionar la 'x'
-    closeButton.addEventListener('click', () => {
-      cancelarPedidoYLimpiar();
-    });
-
-    cerrarYConfirmarButton.addEventListener('click', async () => {
-      if (pedidoActual.length === 0) {
-        alert('El pedido está vacío. No hay nada que confirmar.');
-        resumenModal.style.display = 'none';
-        return;
-      }
-      const idMesa = document.getElementById('selectMesa').value;
-
-      let total = 0;
-      const productosParaDB = pedidoActual.map(item => {
-        const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
-        const subtotal = precioNumero * item.cantidad;
-        total += subtotal;
-
-        return {
-          id: item.idProducto,
-          cantidad: item.cantidad,
-          subtotal: parseFloat(subtotal.toFixed(2))
-        };
-      });
-      // Construir el objeto principal del pedido
-      const pedidoData = {
-        // 🚨 IdCliente: Se toma de la selección de Mesa
-        idCliente: parseInt(idMesa, 10),
-        // IdUsuario: Se toma de la sesión de Login
-        idUsuario: parseInt(localStorage.getItem('usuarioId') || '1', 10),
-        total: parseFloat(total.toFixed(2)),
-        productos: productosParaDB
-      };
-
-      // Validación de seguridad (opcional pero recomendada)
-      if (isNaN(pedidoData.idUsuario)) {
-        alert('Error: No se pudo identificar al empleado (ID de usuario no encontrado).');
-        return;
-      }
-
-      try {
-        const response = await fetch('http://localhost:3000/api/pedidos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(pedidoData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          // 1. Mensaje ÚNICO de Éxito
-          alert(`✅ Pedido #${data.idPedido} (Mesa ${idMesa}) guardado con éxito.`);
-
-          // 2. Limpieza de Interfaz (sin alert de cancelación)
-          pedidoActual = [];
-          document.querySelectorAll('.producto-cantidad').forEach(input => { input.value = 0; });
-          document.querySelectorAll('.ok').forEach(button => { // ⬅️ Habilitar botones aquí
+    // Función: Limpiar pedido y resetear interfaz
+    function cancelarPedidoYLimpiar(mostrarAlerta = true) {
+        pedidoActual = [];
+        document.querySelectorAll('.producto-cantidad').forEach(input => { input.value = 0; });
+        document.querySelectorAll('.ok').forEach(button => {
             button.disabled = false;
             button.style.backgroundColor = '';
             button.style.cursor = 'pointer';
-          });
-          resumenModal.style.display = 'none';
+        });
+        resumenModal.style.display = 'none';
+       // alert('❌ Pedido Cancelado. El carrito ha sido vaciado.');
+       if (mostrarAlerta) {
+        alert('❌ Pedido Cancelado. El carrito ha sido vaciado.');
+    }
+      }
+         
+    // Función: Mostrar Resumen de Pedido
+    function mostrarResumenPedido() {
+        listaPedidoModal.innerHTML = '';
+        let total = 0;
 
+        if (pedidoActual.length === 0) {
+            listaPedidoModal.innerHTML = '<li>No hay productos en el pedido.</li>';
+            totalModal.textContent = '$0.00';
         } else {
-          // Manejo del error si el backend falló (ej: stock insuficiente)
-          alert(`❌ Error al guardar el pedido: ${data.message || 'Error desconocido.'}`);
+            pedidoActual.forEach(item => {
+                const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
+                const subtotal = precioNumero * item.cantidad;
+                total += subtotal;
+
+                const li = document.createElement('li');
+                li.innerHTML = `${item.nombre} (x${item.cantidad}) - $${precioNumero.toFixed(2)} c/u = $${subtotal.toFixed(2)}`;
+                listaPedidoModal.appendChild(li);
+            });
+            totalModal.textContent = `$${total.toFixed(2)}`;
+        }
+        resumenModal.style.display = 'block';
+    }
+
+    // Función: Cargar productos del menú
+    async function loadProducts() {
+        try {
+            const response = await fetch('http://localhost:3000/api/menu');
+            if (!response.ok) throw new Error('Error al cargar el menú');
+            allProducts = await response.json();
+            renderProducts(allProducts);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error al cargar los productos.');
+        }
+    }
+
+    // Función: Renderizar tarjetas de productos
+    function renderProducts(products) {
+        const container = document.getElementById('productsContainer');
+        container.innerHTML = '';
+        products.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = product.IdProducto;
+            const imgSrc = product.ImagenUrl || 'https://via.placeholder.com/150?text=Sin+Imagen';
+            card.innerHTML = `
+                <img src="${imgSrc}" alt="${product.Nombre}" onerror="this.src='https://via.placeholder.com/150?text=Error+Imagen'">
+                <h3 class="producto-nombre">${product.Nombre}</h3>
+                <p class="producto-precio">Precio: $${product.Precio}</p>
+                <div class="cantidad-control">
+                    <label for="cantidad-${product.IdProducto}">Cantidad:</label>
+                    <input type="number" value="0" min="0" class="producto-cantidad" id="cantidad-${product.IdProducto}">
+                    <div class="buttons">
+                        <button class="edit">✏️</button>
+                        <button class="ok">✔</button>
+                        <button class="delete">❌</button>
+                    </div>
+                </div>`;
+            container.appendChild(card);
+        });
+    }
+
+    // Función: Actualizar estado del modal de cliente (Habilitar Confirmar)
+    function actualizarEstadoConfirmar(id, nombre) {
+        inputIdFinal.value = id;
+        clienteSeleccionadoNombre = nombre;
+        btnConfirmarMesa.disabled = false;
+        btnConfirmarMesa.style.opacity = '1';
+        btnConfirmarMesa.style.cursor = 'pointer';
+        btnConfirmarMesa.textContent = `Confirmar ${nombre} y Continuar`;
+        
+        listaResultados.style.display = 'none';
+        formNuevo.style.display = 'none';
+    }
+
+
+    // ==========================================
+    // 3. EVENTOS Y LÓGICA PRINCIPAL
+    // ==========================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // A. Carga Inicial
+        loadProducts();
+        
+        // B. Control de Acceso (Rol)
+        const userRole = localStorage.getItem('usuarioRol');
+        if (userRole === 'Cajero/Mesero') {
+             const inventarioLink = document.querySelector('nav a[href*="Inventario"]');
+             if (inventarioLink) inventarioLink.style.display = 'none';
         }
 
-      } catch (error) {
-        console.error('Error de conexión con el servidor:', error);
-        alert('❌ Error de conexión. Asegúrate de que tu servidor (node server.js) esté corriendo.');
-      }
+        // C. Configuración para Administrador (Botón Agregar Producto)
+        if (userRole === "Administrador") {
+            const linkUsuarios = document.getElementById("linkUsuarios");
+            if (linkUsuarios) linkUsuarios.style.display = "inline-block";
+
+            if (btnAddProduct) {
+                btnAddProduct.style.display = "inline-block";
+                
+                // Evento Abrir Modal Admin
+                btnAddProduct.addEventListener('click', async () => {
+                    addProductModal.style.display = 'block';
+                    if (categorySelect.options.length <= 1) {
+                         try {
+                            const res = await fetch('http://localhost:3000/api/categorias_menu');
+                            if (res.ok) {
+                                const categories = await res.json();
+                                categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+                                categories.forEach(cat => {
+                                    const option = document.createElement('option');
+                                    option.value = cat.IdCategoria;
+                                    option.textContent = cat.Nombre;
+                                    categorySelect.appendChild(option);
+                                });
+                            }
+                        } catch (e) { console.error(e); }
+                    }
+                });
+            }
+        }
+
+        // D. Forzar Modal de Cliente al inicio
+        if (!inputIdFinal.value) {
+            clienteInitModal.style.display = 'flex';
+        }
     });
 
-    // 🚨 CÓDIGO CORREGIDO: Cancelar si el usuario hace clic fuera del modal
+    // --- EVENTOS MODAL CLIENTE ---
+
+    // Buscar Cliente
+    btnBuscar.addEventListener('click', async () => {
+        const texto = inputBusqueda.value.trim();
+        if (texto.length < 2) return alert("Escribe al menos 2 letras para buscar.");
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/clientes/buscar?nombre=${encodeURIComponent(texto)}`);
+            const clientes = await res.json();
+
+            listaResultados.innerHTML = '';
+            listaResultados.style.display = 'block';
+            formNuevo.style.display = 'none';
+
+            // Opción "Registrar Nuevo" siempre visible
+            const divNuevo = document.createElement('div');
+            divNuevo.innerHTML = `<em style="color:blue; font-weight:bold;">+ Registrar Nuevo Cliente</em>`;
+            divNuevo.style.padding = '8px';
+            divNuevo.style.cursor = 'pointer';
+            divNuevo.onclick = () => { 
+                formNuevo.style.display = 'block'; 
+                listaResultados.style.display = 'none';
+                document.getElementById('nuevoNombreCliente').value = texto;
+            };
+            listaResultados.appendChild(divNuevo);
+
+            if (clientes.length > 0) {
+                clientes.forEach(c => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<strong>${c.Nombre}</strong> <small>(${c.Email || 'Sin correo'})</small>`;
+                    div.style.padding = '8px';
+                    div.style.cursor = 'pointer';
+                    div.style.borderBottom = '1px solid #eee';
+                    div.onmouseover = () => div.style.background = '#f0f0f0';
+                    div.onmouseout = () => div.style.background = 'white';
+                    div.onclick = () => actualizarEstadoConfirmar(c.IdCliente, c.Nombre);
+                    listaResultados.appendChild(div);
+                });
+            }
+        } catch (error) {
+            console.error('Error buscando cliente:', error);
+        }
+    });
+
+    // Registrar Nuevo Cliente
+    btnRegistrar.addEventListener('click', async () => {
+        const nombre = document.getElementById('nuevoNombreCliente').value.trim();
+        const email = document.getElementById('nuevoEmailCliente').value.trim();
+        if(!nombre) return alert("El nombre es obligatorio.");
+
+        try {
+            const res = await fetch('http://localhost:3000/api/clientes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nombre, email })
+            });
+            const data = await res.json();
+            if(data.success) {
+                actualizarEstadoConfirmar(data.id, data.nombre);
+                alert(`✅ Cliente registrado y seleccionado.`);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) { console.error(error); }
+    });
+
+    // Selección Mesa Rápida
+    selectMesaRapida.addEventListener('change', () => {
+        const valor = selectMesaRapida.value;
+        if (valor) {
+            const texto = selectMesaRapida.options[selectMesaRapida.selectedIndex].text;
+            actualizarEstadoConfirmar(valor, texto);
+        }
+    });
+
+    // Confirmar y Cerrar Modal Cliente
+    btnConfirmarMesa.addEventListener('click', () => {
+        if (inputIdFinal.value) {
+            clienteInitModal.style.display = 'none';
+        }
+    });
+    
+    // Salir de Pedidos
+    btnSalirPedidos.addEventListener('click', () => {
+        window.location.href = 'Inicio.html';
+    });
+
+
+    // --- EVENTOS MODAL RESUMEN PEDIDO ---
+
+    closeButton.addEventListener('click', () => cancelarPedidoYLimpiar());
+    
     window.addEventListener('click', (event) => {
-      if (event.target === resumenModal) {
-        cancelarPedidoYLimpiar(); // Llama a la función de cancelación
-      }
+        if (event.target === resumenModal) cancelarPedidoYLimpiar();
+        if (event.target === addProductModal) addProductModal.style.display = 'none';
     });
 
-    // Lógica del nuevo botón "Añadir Más Productos" (¡NUEVO!)
     seguirAgregandoButton.addEventListener('click', () => {
-      resumenModal.style.display = 'none';
-      // Importante: NO vaciamos el pedidoActual, solo cerramos el modal.
+        resumenModal.style.display = 'none';
     });
 
-    // DELEGACIÓN DE EVENTOS para los botones (OK, Edit, Delete)
-    // Esto permite que funcionen en elementos creados dinámicamente
-    document.getElementById('productsContainer').addEventListener('click', (e) => {
-      const target = e.target;
-      const card = target.closest('.card');
-      if (!card) return;
-
-      // Botón OK (✔)
-      if (target.classList.contains('ok')) {
-        const idProducto = parseInt(card.dataset.id, 10);
-        const nombreElement = card.querySelector('.producto-nombre');
-        const precioElement = card.querySelector('.producto-precio');
-        const cantidadInput = card.querySelector('.producto-cantidad');
-
-        const nombre = nombreElement.textContent.trim();
-        const precioTexto = precioElement.textContent.trim();
-        const cantidad = parseInt(cantidadInput.value, 10);
-
-        if (cantidad < 1 || isNaN(cantidad)) {
-          alert('La cantidad debe ser un número positivo para añadir un producto.');
-          return;
+    // CONFIRMAR PEDIDO FINAL
+    cerrarYConfirmarButton.addEventListener('click', async () => {
+        if (pedidoActual.length === 0) {
+            alert('El pedido está vacío.');
+            resumenModal.style.display = 'none';
+            return;
+        }
+        
+        const idCliente = inputIdFinal.value;
+        if (!idCliente) {
+            alert("⚠️ Error: No hay cliente seleccionado.");
+            resumenModal.style.display = 'none';
+            clienteInitModal.style.display = 'flex';
+            return;
         }
 
-        const producto = {
-          idProducto: idProducto,
-          nombre: nombre,
-          precio: precioTexto,
-          cantidad: cantidad
+        let total = 0;
+        const productosParaDB = pedidoActual.map(item => {
+            const precio = parseFloat(item.precio.replace('Precio: $', '').trim());
+            const subtotal = precio * item.cantidad;
+            total += subtotal;
+            return { id: item.idProducto, cantidad: item.cantidad, subtotal: parseFloat(subtotal.toFixed(2)) };
+        });
+
+        const pedidoData = {
+            idCliente: parseInt(idCliente, 10),
+            idUsuario: parseInt(localStorage.getItem('usuarioId') || '1', 10),
+            total: parseFloat(total.toFixed(2)),
+            productos: productosParaDB,
+            usuarioRol: localStorage.getItem('usuarioRol')
         };
 
-        let itemExistente = pedidoActual.find(item => item.idProducto === idProducto);
+        try {
+            const response = await fetch('http://localhost:3000/api/pedidos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pedidoData)
+            });
+            const data = await response.json();
 
-        if (itemExistente) {
-          itemExistente.cantidad += cantidad;
-        } else {
-          pedidoActual.push(producto);
-          target.disabled = true;
-          target.style.backgroundColor = '#ccc';
-          target.style.cursor = 'default';
+            if (response.ok && data.success) {
+                alert(`✅ Pedido #${data.idPedido} guardado con éxito.`);
+                cancelarPedidoYLimpiar(false); // Limpieza completa (false = no alerta)
+            } else {
+                alert(`❌ Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('❌ Error de conexión.');
         }
-        mostrarResumenPedido();
-      }
-
-      // Botón Edit (✏️)
-      if (target.classList.contains('edit')) {
-        const nombreElement = card.querySelector('.producto-nombre');
-        const cantidadInput = card.querySelector('.producto-cantidad');
-        const nombre = nombreElement.textContent.trim();
-        const nuevaCantidad = parseInt(cantidadInput.value, 10);
-
-        if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
-          alert('La cantidad debe ser mayor a 0.');
-          return;
-        }
-
-        const productoEnPedido = pedidoActual.find(item => item.nombre === nombre);
-        if (productoEnPedido) {
-          productoEnPedido.cantidad = nuevaCantidad;
-          mostrarResumenPedido();
-          alert('Cantidad actualizada en el resumen.');
-        } else {
-          alert('Este producto aún no está en el pedido. Confírmalo primero con ✔.');
-        }
-      }
-
-      // Botón Delete (❌)
-      if (target.classList.contains('delete')) {
-        const nombreElement = card.querySelector('.producto-nombre');
-        const nombre = nombreElement.textContent.trim();
-
-        const index = pedidoActual.findIndex(item => item.nombre === nombre);
-        if (index !== -1) {
-          pedidoActual.splice(index, 1);
-          mostrarResumenPedido();
-          alert('Producto eliminado del resumen.');
-
-          const okButton = card.querySelector('.ok');
-          if (okButton) {
-            okButton.disabled = false;
-            okButton.style.backgroundColor = '';
-            okButton.style.cursor = 'pointer';
-          }
-        } else {
-          alert('Este producto no está en el pedido.');
-        }
-      }
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
-      loadProducts(); // Cargar productos al iniciar
 
-      const rol = localStorage.getItem("usuarioRol");
-      if (rol === "Administrador") {
-        const linkUsuarios = document.getElementById("linkUsuarios");
-        if (linkUsuarios) linkUsuarios.style.display = "inline-block";
+    // --- EVENTOS TARJETAS PRODUCTO (DELEGACIÓN) ---
+    
+    document.getElementById('productsContainer').addEventListener('click', (e) => {
+        const target = e.target;
+        const card = target.closest('.card');
+        if (!card) return;
 
-        const btnAddProduct = document.getElementById("btnAddProduct");
-        if (btnAddProduct) {
-          btnAddProduct.style.display = "inline-block";
+        // OK BUTTON
+        if (target.classList.contains('ok')) {
+            if (target.disabled) return; // Evitar doble click si ya está deshabilitado
 
-          // Lógica del Modal Agregar Producto
-          const addProductModal = document.getElementById('addProductModal');
-          const closeAddProduct = document.querySelector('.close-add-product');
-          const addProductForm = document.getElementById('addProductForm');
-          const categorySelect = document.getElementById('newProdCategory');
+            const idProducto = parseInt(card.dataset.id, 10);
+            const nombre = card.querySelector('.producto-nombre').textContent.trim();
+            const precio = card.querySelector('.producto-precio').textContent.trim();
+            const cantidadInput = card.querySelector('.producto-cantidad');
+            const cantidad = parseInt(cantidadInput.value, 10);
 
-          // Abrir modal
-          btnAddProduct.addEventListener('click', async () => {
-            addProductModal.style.display = 'block';
-            // Cargar categorías si está vacío
-            if (categorySelect.options.length <= 1) {
-              try {
-                const res = await fetch('http://localhost:3000/api/categorias_menu');
-                if (res.ok) {
-                  const categories = await res.json();
-                  categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-                  categories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat.IdCategoria;
-                    option.textContent = cat.Nombre;
-                    categorySelect.appendChild(option);
-                  });
-                } else {
-                  categorySelect.innerHTML = '<option value="1">Bebidas</option><option value="2">Comida</option><option value="3">Postres</option>';
-                }
-              } catch (e) {
-                console.error("Error cargando categorías", e);
-                categorySelect.innerHTML = '<option value="1">Bebidas</option><option value="2">Comida</option><option value="3">Postres</option>';
-              }
+            if (cantidad < 1 || isNaN(cantidad)) return alert('Cantidad inválida');
+
+            const producto = { idProducto, nombre, precio, cantidad };
+            const existente = pedidoActual.find(p => p.idProducto === idProducto);
+
+            if (existente) {
+                existente.cantidad += cantidad;
+            } else {
+                pedidoActual.push(producto);
+                target.disabled = true;
+                target.style.backgroundColor = '#ccc';
+                target.style.cursor = 'default';
             }
-          });
+            mostrarResumenPedido();
+        }
+        
+        // EDIT BUTTON
+        if (target.classList.contains('edit')) {
+             const idProducto = parseInt(card.dataset.id, 10);
+             const cantidadInput = card.querySelector('.producto-cantidad');
+             const nuevaCantidad = parseInt(cantidadInput.value, 10);
+             
+             if (isNaN(nuevaCantidad) || nuevaCantidad < 1) return alert('Cantidad inválida');
 
-          // Cerrar modal
-          closeAddProduct.addEventListener('click', () => {
-            addProductModal.style.display = 'none';
-          });
+             const existente = pedidoActual.find(p => p.idProducto === idProducto);
+             if (existente) {
+                 existente.cantidad = nuevaCantidad;
+                 mostrarResumenPedido();
+                 alert('Cantidad actualizada.');
+             } else {
+                 alert('Producto no añadido aún. Usa ✔ primero.');
+             }
+        }
 
-          window.addEventListener('click', (e) => {
-            if (e.target === addProductModal) {
-              addProductModal.style.display = 'none';
-            }
-          });
+        // DELETE BUTTON
+        if (target.classList.contains('delete')) {
+             const idProducto = parseInt(card.dataset.id, 10);
+             const index = pedidoActual.findIndex(p => p.idProducto === idProducto);
+             
+             if (index !== -1) {
+                 pedidoActual.splice(index, 1);
+                 mostrarResumenPedido();
+                 alert('Eliminado del pedido.');
+                 
+                 // Reactivar botón OK
+                 const okButton = card.querySelector('.ok');
+                 if (okButton) {
+                     okButton.disabled = false;
+                     okButton.style.backgroundColor = '';
+                     okButton.style.cursor = 'pointer';
+                 }
+             } else {
+                 alert('Este producto no está en el pedido.');
+             }
+        }
+    });
 
-          // Enviar formulario
-          addProductForm.addEventListener('submit', async (e) => {
+    // --- EVENTOS MODAL AGREGAR PRODUCTO (ADMIN) ---
+    if (closeAddProduct) closeAddProduct.addEventListener('click', () => addProductModal.style.display = 'none');
+    
+    if (addProductForm) {
+        addProductForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const newProduct = {
-              Nombre: document.getElementById('newProdName').value,
-              Descripcion: document.getElementById('newProdDesc').value,
-              Precio: parseFloat(document.getElementById('newProdPrice').value),
-              Stock: parseInt(document.getElementById('newProdStock').value),
-              IdCategoria: parseInt(document.getElementById('newProdCategory').value),
-              Imagen: document.getElementById('newProdImage').value // Se envía como 'Imagen', el backend lo mapea a 'ImagenUrl'
+                Nombre: document.getElementById('newProdName').value,
+                Descripcion: document.getElementById('newProdDesc').value,
+                Precio: parseFloat(document.getElementById('newProdPrice').value),
+                Stock: parseInt(document.getElementById('newProdStock').value),
+                IdCategoria: parseInt(document.getElementById('newProdCategory').value),
+                Imagen: document.getElementById('newProdImage').value
             };
 
             try {
-              const response = await fetch('http://localhost:3000/api/inventario/productos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newProduct)
-              });
+                const res = await fetch('http://localhost:3000/api/inventario/productos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newProduct)
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('✅ Producto agregado.');
+                    addProductModal.style.display = 'none';
+                    addProductForm.reset();
+                    loadProducts();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            } catch (error) { console.error(error); }
+        });
+    }
 
-              const data = await response.json();
-
-              if (response.ok && data.success) {
-                alert('✅ Producto agregado con éxito!');
-                addProductModal.style.display = 'none';
-                addProductForm.reset();
-                loadProducts(); // Recargar la lista de productos
-              } else {
-                alert('❌ Error al agregar producto: ' + (data.message || data.error || 'Error desconocido'));
-              }
-            } catch (error) {
-              console.error('Error:', error);
-              alert('❌ Error de conexión al guardar producto.');
-            }
-          });
-        }
-      }
-    });
-  </script>
+</script>
+  
 </body>
 
 </html>
