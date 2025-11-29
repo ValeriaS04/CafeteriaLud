@@ -388,3 +388,151 @@ footer {
     padding: 20px;
   }
 }
+/* =======================================================
+   ESTILOS DEL MODAL DE SELECCIÓN DE CLIENTE
+   ======================================================= */
+
+/* Estilo base del modal (ya lo tienes, pero aseguramos el flex) */
+#clienteInitModal {
+    background-color: rgba(62, 39, 35, 0.6); /* Fondo café oscuro semi-transparente */
+    backdrop-filter: blur(4px); /* Efecto borroso moderno */
+}
+
+/* Contenedor Principal */
+#clienteInitModal .modal-content {
+    border-radius: 12px;
+    padding: 30px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    font-family: 'Poppins', sans-serif;
+    background: #ffffff;
+}
+
+/* Título */
+#clienteInitModal h2 {
+    color: #5D4037; /* Café principal */
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+#clienteInitModal p {
+    color: #795548;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+/* Línea divisoria */
+#clienteInitModal hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+/* --- SECCIÓN DE BUSCADOR --- */
+#busquedaCliente {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    background-color: #fafafa;
+}
+
+#busquedaCliente:focus {
+    border-color: #8d6e63;
+    outline: none;
+    background-color: #fff;
+}
+
+#btnBuscarCliente {
+    background-color: #8d6e63; /* Café medio */
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+#btnBuscarCliente:hover {
+    background-color: #6d4c41;
+}
+
+/* --- LISTA DE RESULTADOS --- */
+#listaResultados {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    background: #fff;
+}
+
+#listaResultados div {
+    padding: 12px 15px !important; /* Forzar padding */
+    transition: background-color 0.2s;
+}
+
+#listaResultados div:hover {
+    background-color: #efebe9 !important; /* Color café muy claro al pasar mouse */
+}
+
+/* --- SELECTOR DE MESA RÁPIDA --- */
+#selectMesaRapida {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #d7ccc8; /* Café claro */
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #3e2723;
+    background-color: #fff;
+    cursor: pointer;
+    outline: none;
+}
+
+#selectMesaRapida:focus {
+    border-color: #8d6e63;
+}
+
+/* --- ESTADO SELECCIONADO (Caja verde) --- */
+#estadoSeleccionado {
+    background-color: #f1f8e9 !important; /* Verde muy claro */
+    border: 2px solid #c5e1a5 !important;
+    border-radius: 10px !important;
+    padding: 20px !important;
+}
+
+#lblClienteSeleccionado {
+    color: #2e7d32;
+    font-size: 1.2rem;
+}
+
+/* --- BOTONES DE ACCIÓN INFERIORES --- */
+#btnConfirmarMesa {
+    background-color: #43a047 !important; /* Verde */
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+}
+
+#btnConfirmarMesa:disabled {
+    background-color: #ccc !important;
+    opacity: 0.6;
+}
+
+#btnConfirmarMesa:hover:not(:disabled) {
+    background-color: #2e7d32 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+#btnSalirPedidos {
+    background-color: #8d6e63 !important; /* Rojo suave */
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+#btnSalirPedidos:hover {
+    background-color: #6d4c41 !important;
+}
