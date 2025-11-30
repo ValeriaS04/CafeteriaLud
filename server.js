@@ -54,7 +54,6 @@ async function testDbConnection() {
 // ====================================================================
 // PASO 3: DEFINICIÓN DE LAS RUTAS (ENDPOINTS) DE TU API
 // ====================================================================
-
 // RUTAS DE AUTENTICACIÓN
 app.post('/api/login', async (req, res) => {
   // ... dentro de app.post('/api/login', ...
@@ -89,7 +88,6 @@ app.post('/api/login', async (req, res) => {
 });
 
 // RUTAS PARA OBTENER DATOS (GET)
-
 // Ruta para obtener la lista de productos (el menú de la cafetería)
 app.get('/api/menu', async (req, res) => {
   try {
@@ -175,7 +173,6 @@ app.get('/api/categorias_menu', async (req, res) => {
   }
 });
 
-
 // RUTA PARA MARCAR PEDIDO COMO COMPLETADO
 app.put('/api/pedidos/:id/completar', async (req, res) => {
   const { id } = req.params;
@@ -198,7 +195,6 @@ app.put('/api/pedidos/:id/completar', async (req, res) => {
 
 // get oedido o algo asi nose pal papnel
 // --- RUTAS DE PEDIDOS PARA EL PANEL DE VISUALIZACIÓN ---
-
 // Ruta 1: Para obtener la lista de pedidos principales (Panel, tabla izquierda)
 app.get('/api/pedidos', async (req, res) => {
   try {
@@ -397,7 +393,6 @@ app.post('/api/pedidos/enviar-ticket', async (req, res) => {
     }
 });
 // RUTAS PARA INSERTAR DATOS (POST)
-
 // Ruta para registrar un nuevo pedido completo
 app.post('/api/pedidos', async (req, res) => {
   // 1. Recibir los datos del frontend (incluyendo IdCliente)
@@ -536,7 +531,6 @@ app.get('/api/pedidos/completados', async (req, res) => {
 // ======================================
 // RUTAS DE GESTIÓN DE USUARIOS (ADMIN)
 // ======================================
-
 // 1. Obtener todos los usuarios
 app.get('/api/usuarios', async (req, res) => {
   try {
@@ -617,7 +611,6 @@ app.post('/api/reportes/top', async (req, res) => {
 // ==================================================
 // RUTAS DE GESTIÓN DE CLIENTES (PARA PEDIDOS)
 // ==================================================
-
 // 1. Buscar clientes por nombre
 app.get('/api/clientes/buscar', async (req, res) => {
     const { nombre } = req.query;
@@ -648,6 +641,78 @@ app.post('/api/clientes', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al registrar cliente' });
     }
 });
+
+// ==================================================
+// BLOQUE: CREACIÓN DE PRODUCTOS CON RECETA
+// ==================================================
+// 1. Ruta para llenar el "Select" de ingredientes
+app.get('/api/inventario/insumos', async (req, res) => {
+    try {
+        // MODIFICADO: WHERE IdCategoriaInventario IN (1, 2, 3)
+        // Esto trae solo Bebidas, Comidas y Envases. Ignora Limpieza (4).
+        const query = `
+            SELECT IdInventario, NombreProducto 
+            FROM Inventario 
+            WHERE IdCategoriaInventario IN (1, 2, 3) 
+            ORDER BY NombreProducto
+        `;
+        const [rows] = await pool.query(query);
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al cargar lista de insumos' });
+    }
+});
+// 2. Ruta Transaccional: Guarda Producto + Receta
+app.post('/api/inventario/productos-con-receta', async (req, res) => {
+    const { Nombre, Descripcion, Precio, Stock, IdCategoria, Imagen, Receta } = req.body;
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+        // A. Insertar Producto
+        const [prodRes] = await connection.query(
+            'INSERT INTO Productos (Nombre, Descripcion, Precio, Stock, IdCategoria, ImagenUrl) VALUES (?, ?, ?, ?, ?, ?)',
+            [Nombre, Descripcion, Precio, Stock, IdCategoria, Imagen]
+        );
+        const nuevoIdProducto = prodRes.insertId;
+        // B. Insertar Receta
+        if (Receta && Receta.length > 0) {
+            for (const ing of Receta) {
+                await connection.query(
+                    'INSERT INTO Recetas (IdProducto, IdInventario, CantidadInsumo) VALUES (?, ?, ?)',
+                    [nuevoIdProducto, ing.IdInventario, ing.CantidadInsumo]
+                );
+            }
+        }
+        await connection.commit();
+        res.json({ success: true, message: 'Producto creado.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        res.status(500).json({ success: false, message: 'Error: ' + error.message });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+// --- RUTA CORREGIDA: CREAR NUEVO INSUMO ---
+app.post('/api/inventario/nuevo-insumo', async (req, res) => {
+    // CORRECCIÓN: Aquí leíamos 'idCategoria', pero el frontend envía 'categoria'.
+    // Ahora leemos 'categoria' para que coincida.
+    const { nombre, cantidad, categoria, imagen } = req.body;
+
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO Inventario (NombreProducto, Cantidad, IdCategoriaInventario, ImagenUrl) VALUES (?, ?, ?, ?)',
+            [nombre, cantidad, categoria, imagen] // Usamos la variable correcta aquí
+        );
+        res.json({ success: true, message: 'Insumo agregado correctamente' });
+    } catch (error) {
+        console.error("Error SQL:", error.sqlMessage || error.message); // Para que veas el error real en la terminal
+        res.status(500).json({ success: false, message: 'Error al guardar insumo: ' + (error.sqlMessage || error.message) });
+    }
+});
+
 // ====================================================================
 // PASO 4: INICIAR EL SERVIDOR
 // ====================================================================

@@ -71,48 +71,69 @@
   <!--FinModal-->
 
   <!-- Modal Agregar Producto -->
-  <div id="addProductModal" class="modal">
-    <div class="modal-content">
-      <span class="close-add-product" style="float:right; font-size:28px; cursor:pointer;">&times;</span>
-      <h3>Agregar Nuevo Producto</h3>
-      <form id="addProductForm" style="display: flex; flex-direction: column; gap: 15px;">
-        <div>
-          <label for="newProdName" style="font-weight: bold;">Nombre:</label>
-          <input type="text" id="newProdName" required
-            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-        <div>
-          <label for="newProdDesc" style="font-weight: bold;">Descripción:</label>
-          <textarea id="newProdDesc"
-            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
-        </div>
-        <div>
-          <label for="newProdPrice" style="font-weight: bold;">Precio ($):</label>
-          <input type="number" id="newProdPrice" step="0.01" required
-            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-        <div>
-          <label for="newProdStock" style="font-weight: bold;">Stock Inicial:</label>
-          <input type="number" id="newProdStock" value="10" required
-            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-        <div>
-          <label for="newProdCategory" style="font-weight: bold;">Categoría:</label>
-          <select id="newProdCategory" required
-            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-            <option value="">Cargando categorías...</option>
-          </select>
-        </div>
-        <div>
-          <label for="newProdImage" style="font-weight: bold;">URL Imagen:</label>
-          <input type="url" id="newProdImage" placeholder="https://ejemplo.com/imagen.jpg"
-            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-        <button type="submit" class="add" style="width: 100%; margin-top: 10px;">Guardar Producto</button>
-      </form>
+   <div id="addProductModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-add-product" style="float:right; font-size:28px; cursor:pointer;">&times;</span>
+        <h3 style="color: #5a3d31; border-bottom: 2px solid #5a3d31; padding-bottom: 10px;">Agregar Nuevo Producto</h3>
+        
+        <form id="addProductForm" style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-weight: bold;">Nombre:</label>
+                    <input type="text" id="newProdName" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="font-weight: bold;">Precio ($):</label>
+                    <input type="number" id="newProdPrice" step="0.50" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="font-weight: bold;">Categoría:</label>
+                    <select id="newProdCategory" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: bold;">Stock Inicial:</label>
+                    <input type="number" id="newProdStock" value="0" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+            </div>
+
+            <div>
+                <label style="font-weight: bold;">Descripción:</label>
+                <textarea id="newProdDesc" rows="2" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+            </div>
+
+            <div>
+                <label style="font-weight: bold;">URL Imagen:</label>
+                <input type="url" id="newProdImage" placeholder="https://..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <h4 style="margin: 0; color: #6d4c41;">Receta (Ingredientes)</h4>
+            <p style="font-size: 0.8em; color: #666; margin-bottom: 5px;">Define qué se descuenta del inventario al vender esto.</p>
+            
+            <div id="listaIngredientesContainer" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 5px;">
+                </div>
+            
+            <button type="button" id="btnAgregarIngrediente" style="background-color: #6c757d; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; margin-top: 5px;">
+                + Agregar Ingrediente
+            </button>
+            <button type="submit" class="add" style="margin-top: 15px; width: 100%;">Guardar Producto</button>
+
+            <a href="#" id="btnAbrirCrearInsumo" style="font-size: 0.9em; color: #28a745; text-decoration: underline;">
+                ¿No encuentras el ingrediente? Créalo aquí
+            </a>
+        
+        </form>
     </div>
   </div>
+<<<<<<< HEAD
   <div id="clienteInitModal" class="modal" style="display: none;">
+=======
+<!--FinModal-->
+
+  <div id="clienteInitModal" class="modal" style="display: flex;">
+>>>>>>> 0c6214bb2ecdc8828f366d2bc056da42c6b592b4
     <div class="modal-content" style="max-width: 600px;">
         <h2 style="color: #6d4c41;">Seleccionar Cliente</h2>
         <p>Identifica la orden antes de comenzar.</p>
@@ -171,6 +192,40 @@
 </div>
 
 <input type="hidden" id="idClienteFinal">
+
+
+// Modal para el insumo nuevo
+<div id="modalQuickInsumo" class="modal" style="display: none; z-index: 2000;">
+    <div class="modal-content" style="max-width: 450px; border: 2px solid #28a745;">
+        <span class="close-btn" onclick="document.getElementById('modalQuickInsumo').style.display='none'">&times;</span>
+        <h3 style="color: #28a745; margin-top: 0;">Nuevo Ingrediente</h3>
+        
+        <form id="formQuickInsumo">
+            <div style="margin-bottom: 10px;">
+                <label>Nombre:</label>
+                <input type="text" id="qi_nombre" required style="width: 100%; padding: 8px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Categoría:</label>
+                <select id="qi_categoria" style="width: 100%; padding: 8px;">
+                    <option value="1">Bebidas (Ingrediente)</option>
+                    <option value="2">Comidas (Ingrediente)</option>
+                    <option value="3">Envases</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Stock Inicial:</label>
+                <input type="number" id="qi_cantidad" value="0" required style="width: 100%; padding: 8px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>URL Imagen (Opcional):</label>
+                <input type="text" id="qi_imagen" placeholder="https://..." style="width: 100%; padding: 8px;">
+            </div>
+            <button type="submit" class="add" style="width: 100%; background-color: #28a745;">Guardar Ingrediente</button>
+        </form>
+    </div>
+</div>
+// fin del modal
 
   <script>
 //validacion encargado inventario
@@ -617,39 +672,198 @@ function mostrarResumenPedido() {
     });
 
     // --- EVENTOS MODAL AGREGAR PRODUCTO (ADMIN) ---
-    if (closeAddProduct) closeAddProduct.addEventListener('click', () => addProductModal.style.display = 'none');
-    
-    if (addProductForm) {
-        addProductForm.addEventListener('submit', async (e) => {
+    // =====================================================
+    // LÓGICA NUEVA: AGREGAR PRODUCTO + RECETA
+    // =====================================================
+    const modalAdd = document.getElementById('addProductModal');
+    const btnOpenAdd = document.getElementById('btnAddProduct');
+    const btnCloseAdd = document.querySelector('.close-add-product');
+    const formAdd = document.getElementById('addProductForm');
+    let listaInsumosGlobal = [];
+
+    // 1. Cargar lista de insumos del servidor
+    async function cargarInsumosSistema() {
+        try {
+            const res = await fetch('http://localhost:3000/api/inventario/insumos');
+            listaInsumosGlobal = await res.json();
+        } catch (e) { console.error("Error cargando insumos", e); }
+    }
+
+    // 2. Agregar fila visual de ingrediente
+    function agregarFilaIngrediente() {
+        const div = document.createElement('div');
+        div.className = 'fila-ingrediente';
+        div.style.display = 'flex';
+        div.style.gap = '10px';
+        div.style.marginBottom = '8px';
+
+        let opciones = '<option value="">-- Insumo --</option>';
+        listaInsumosGlobal.forEach(insumo => {
+            opciones += `<option value="${insumo.IdInventario}">${insumo.NombreProducto}</option>`;
+        });
+
+        div.innerHTML = `
+            <select class="sel-insumo" style="flex: 2; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">${opciones}</select>
+            <input type="number" class="inp-cantidad" placeholder="Cant. (ej: 0.250)" step="0.001" style="flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+            <button type="button" onclick="this.parentElement.remove()" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 0 10px; cursor: pointer;">&times;</button>
+        `;
+        document.getElementById('listaIngredientesContainer').appendChild(div);
+    }
+
+    // 3. Abrir Modal
+    if(btnOpenAdd) {
+        btnOpenAdd.addEventListener('click', async () => {
+            modalAdd.style.display = 'block';
+            // Cargar insumos si es la primera vez
+            if (listaInsumosGlobal.length === 0) await cargarInsumosSistema();
+            
+            // Limpiar y preparar
+            document.getElementById('listaIngredientesContainer').innerHTML = '';
+            agregarFilaIngrediente(); 
+            
+            // Cargar categorías (Tu código original para esto)
+            const catSelect = document.getElementById('newProdCategory');
+            if (catSelect && catSelect.options.length <= 1) {
+                 try {
+                    const res = await fetch('http://localhost:3000/api/categorias_menu');
+                    if(res.ok) {
+                        const cats = await res.json();
+                        catSelect.innerHTML = '<option value="">Seleccione...</option>';
+                        cats.forEach(c => {
+                            const op = document.createElement('option');
+                            op.value = c.IdCategoria; op.textContent = c.Nombre;
+                            catSelect.appendChild(op);
+                        });
+                    }
+                 } catch(e) {}
+            }
+        });
+    }
+
+    // 4. Cerrar Modal
+    if(btnCloseAdd) btnCloseAdd.addEventListener('click', () => modalAdd.style.display = 'none');
+
+    // 5. Botón "+ Agregar Ingrediente"
+    const btnMasIng = document.getElementById('btnAgregarIngrediente');
+    if(btnMasIng) btnMasIng.addEventListener('click', agregarFilaIngrediente);
+
+    // 6. GUARDAR TODO (Submit)
+    if(formAdd) {
+        formAdd.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const newProduct = {
+
+            // A. Datos del Producto
+            const productoData = {
                 Nombre: document.getElementById('newProdName').value,
                 Descripcion: document.getElementById('newProdDesc').value,
                 Precio: parseFloat(document.getElementById('newProdPrice').value),
                 Stock: parseInt(document.getElementById('newProdStock').value),
                 IdCategoria: parseInt(document.getElementById('newProdCategory').value),
-                Imagen: document.getElementById('newProdImage').value
+                Imagen: document.getElementById('newProdImage').value,
+                Receta: [] 
+            };
+
+            // B. Datos de la Receta
+            document.querySelectorAll('.fila-ingrediente').forEach(row => {
+                const idInsumo = row.querySelector('.sel-insumo').value;
+                const cantidad = row.querySelector('.inp-cantidad').value;
+                if (idInsumo && cantidad) {
+                    productoData.Receta.push({
+                        IdInventario: parseInt(idInsumo),
+                        CantidadInsumo: parseFloat(cantidad)
+                    });
+                }
+            });
+
+            // C. Enviar
+            try {
+                const res = await fetch('http://localhost:3000/api/inventario/productos-con-receta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productoData)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    alert('✅ Producto guardado correctamente.');
+                    modalAdd.style.display = 'none';
+                    formAdd.reset();
+                    loadProducts(); // Recargar la pantalla
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión');
+            }
+        });
+    }
+
+
+// --- LÓGICA PARA CREAR INSUMO RÁPIDO ---
+    const modalQuick = document.getElementById('modalQuickInsumo');
+    const btnAbrirQuick = document.getElementById('btnAbrirCrearInsumo');
+    const formQuick = document.getElementById('formQuickInsumo');
+
+    // 1. Abrir el modal secundario
+    if(btnAbrirQuick) {
+        btnAbrirQuick.addEventListener('click', (e) => {
+            e.preventDefault(); // Evitar que recargue
+            modalQuick.style.display = 'flex';
+        });
+    }
+
+    // 2. Guardar el nuevo insumo
+    if(formQuick) {
+        formQuick.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nuevoInsumo = {
+                nombre: document.getElementById('qi_nombre').value,
+                categoria: parseInt(document.getElementById('qi_categoria').value),
+                cantidad: parseFloat(document.getElementById('qi_cantidad').value),
+                imagen: document.getElementById('qi_imagen').value || 'https://via.placeholder.com/150'
             };
 
             try {
-                const res = await fetch('http://localhost:3000/api/inventario/productos', {
+                const res = await fetch('http://localhost:3000/api/inventario/nuevo-insumo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newProduct)
+                    body: JSON.stringify(nuevoInsumo)
                 });
-                const data = await res.json();
-                if (res.ok && data.success) {
-                    alert('✅ Producto agregado.');
-                    addProductModal.style.display = 'none';
-                    addProductForm.reset();
-                    loadProducts();
+
+                if(res.ok) {
+                    alert('✅ Ingrediente creado.');
+                    modalQuick.style.display = 'none';
+                    formQuick.reset();
+
+                    // 3. MAGIA: Recargar la lista de insumos y actualizar los selects abiertos
+                    await cargarInsumosSistema(); 
+                    actualizarSelectsAbiertos(); 
                 } else {
-                    alert('❌ Error: ' + data.message);
+                    alert('Error al guardar');
                 }
             } catch (error) { console.error(error); }
         });
     }
 
+    // 4. Función auxiliar para actualizar los selects que ya están en pantalla
+    function actualizarSelectsAbiertos() {
+        const selects = document.querySelectorAll('.sel-insumo');
+        
+        // Volvemos a generar el HTML de las opciones con la lista actualizada
+        let nuevasOpciones = '<option value="">-- Insumo --</option>';
+        listaInsumosGlobal.forEach(insumo => {
+            nuevasOpciones += `<option value="${insumo.IdInventario}">${insumo.NombreProducto}</option>`;
+        });
+
+        // Aplicamos a todos los selects existentes
+        selects.forEach(select => {
+            const valorActual = select.value; // Guardamos lo que tenía seleccionado
+            select.innerHTML = nuevasOpciones;
+            select.value = valorActual; // Restauramos la selección (si existía)
+        });
+    }
 </script>
   
 </body>
