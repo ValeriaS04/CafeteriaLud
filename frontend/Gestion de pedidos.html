@@ -251,27 +251,37 @@ const userRole = localStorage.getItem('usuarioRol');
       }
          
     // Función: Mostrar Resumen de Pedido
-    function mostrarResumenPedido() {
-        listaPedidoModal.innerHTML = '';
-        let total = 0;
+function mostrarResumenPedido() {
+    listaPedidoModal.innerHTML = '';
+    let subtotal = 0;
 
-        if (pedidoActual.length === 0) {
-            listaPedidoModal.innerHTML = '<li>No hay productos en el pedido.</li>';
-            totalModal.textContent = '$0.00';
-        } else {
-            pedidoActual.forEach(item => {
-                const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
-                const subtotal = precioNumero * item.cantidad;
-                total += subtotal;
+    if (pedidoActual.length === 0) {
+        listaPedidoModal.innerHTML = '<li>No hay productos en el pedido.</li>';
+        totalModal.textContent = '$0.00';
+    } else {
+        pedidoActual.forEach(item => {
+            const precioNumero = parseFloat(item.precio.replace('Precio: $', '').trim());
+            const itemSubtotal = precioNumero * item.cantidad;
+            subtotal += itemSubtotal;
 
-                const li = document.createElement('li');
-                li.innerHTML = `${item.nombre} (x${item.cantidad}) - $${precioNumero.toFixed(2)} c/u = $${subtotal.toFixed(2)}`;
-                listaPedidoModal.appendChild(li);
-            });
-            totalModal.textContent = `$${total.toFixed(2)}`;
-        }
-        resumenModal.style.display = 'block';
+            const li = document.createElement('li');
+            li.innerHTML = `${item.nombre} (x${item.cantidad}) - $${precioNumero.toFixed(2)} c/u = $${itemSubtotal.toFixed(2)}`;
+            listaPedidoModal.appendChild(li);
+        });
+        
+        // 🟢 NUEVO: Calcular IVA y total
+        const iva = subtotal * 0.16;
+        const total = subtotal + iva;
+        
+        // 🟢 MODIFICADO: Mostrar desglose
+        totalModal.innerHTML = `
+            <div><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</div>
+            <div><strong>IVA (16%):</strong> $${iva.toFixed(2)}</div>
+            <div style="font-size: 1.2em; margin-top: 5px;"><strong>Total:</strong> $${total.toFixed(2)}</div>
+        `;
     }
+    resumenModal.style.display = 'block';
+}
 
     // Función: Cargar productos del menú
     async function loadProducts() {

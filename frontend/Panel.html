@@ -115,439 +115,539 @@
         </div>
     </div>
 
-    <script>
-        //validacion encargado inventario
-const userRole = localStorage.getItem('usuarioRol');
-
-      if (userRole === 'Encargado de inventario') {
-          // Encargado de Inventario (Debe ver: Inicio, Inventario, Cerrar Sesión)
-          const pedidosLink = document.querySelector('nav a[href*="Gestion de pedidos.html"]');
-          const panelLink = document.querySelector('nav a[href*="Panel.html"]');
-          
-          // 2. Restricción del Encargado: Ocultar Pedidos y Panel
-          if (pedidosLink) pedidosLink.style.display = 'none';
-          if (panelLink) panelLink.style.display = 'none';
-      }
-      //fin validacion
-        document.addEventListener('DOMContentLoaded', () => {
-            const orderListDiv = document.getElementById('orderList');
-            const orderDetailContent = document.getElementById('orderDetailContent');
-
-            // Función para formatear la fecha a un formato legible
-            const formatDate = (dateString) => {
-                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                return new Date(dateString).toLocaleDateString('es-MX', options);
-            };
-
-            // 1. CARGA LA LISTA DE PEDIDOS EN LA COLUMNA IZQUIERDA
-            async function loadOrderList() {
-                try {
-                    const response = await fetch('http://localhost:3000/api/pedidos');
-                    if (!response.ok) {
-                        throw new Error('Error al cargar la lista de pedidos');
-                    }
-                    const orders = await response.json();
-                    orderListDiv.innerHTML = ''; // Limpiar mensaje de carga
-
-                    orders.forEach(order => {
-                        const row = document.createElement('div');
-                        row.className = 'order-row';
-                        row.dataset.id = order.IdPedido; // Guardar el ID para el clic
-
-                        row.innerHTML = `
-                    <div>#${order.IdPedido}</div>
-                    <div>${order.NombreCliente}</div>
-                    <div>${formatDate(order.Fecha)}</div>
-                    <div>$${parseFloat(order.Total).toFixed(2)}</div>
-                    <div class="order-status">${order.Estado}</div>;
-                `;
-
-                        // 2. AÑADE EL EVENTO CLICK
-                        row.addEventListener('click', () => {
-                            // Remover 'active' de todas las filas y añadirlo a la seleccionada
-                            document.querySelectorAll('.order-row').forEach(r => r.classList.remove('active'));
-                            row.classList.add('active');
-                            showOrderDetail(order.IdPedido, order);
-                        });
-
-                        orderListDiv.appendChild(row);
-                    });
-                } catch (error) {
-                    orderListDiv.innerHTML = `<p style="color: red;">Error: No se pudo conectar con el servidor de pedidos. (${error.message})</p>`;
-                }
-            }
-
-            // 3. CARGA LOS DETALLES DEL PEDIDO EN LA COLUMNA DERECHA
-            async function showOrderDetail(orderId, orderSummary) {
-                orderDetailContent.innerHTML = '<p>Cargando detalles...</p>';
-
-                // Obtenemos la referencia a la fila actual para actualizar su estado visual
-                const activeRow = document.querySelector(`.order-row[data-id="${orderId}"]`);
-
-                try {
-                    // Llamar a la nueva ruta para obtener el detalle de productos
-                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/detalle`);
-                    if (!response.ok) {
-                        throw new Error('Error al cargar detalles');
-                    }
-                    const details = await response.json();
-
-                    // 1. Iniciar la estructura HTML
-                    let detailsHTML = `
-            <h4>Pedido #${orderId}</h4>
-           
-            <p><strong>Mesa:</strong> ${orderSummary.NombreCliente}</p>
-            <p><strong>Estado:</strong> <span id="currentStatus">${orderSummary.Estado}</span></p>
-            <p><strong>Tomado por:</strong> ${orderSummary.NombreUsuario}</p>
-            <hr>
-           
-            <table class="detail-table">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cant.</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-                    // 2. Insertar las filas de productos (detalles)
-                    details.forEach(item => {
-                        detailsHTML += `
-                <tr>
-                    <td>${item.NombreProducto}</td>
-                    <td>x${item.Cantidad}</td>
-                    <td>$${parseFloat(item.Subtotal).toFixed(2)}</td>
-                </tr>
-            `;
-                    });
-
-                    // 3. Cerrar la tabla y añadir totales
-                    detailsHTML += `
-                </tbody>
-            </table>
-            <hr>
-            <p style="font-size: 1.2em; font-weight: bold; text-align: right;">TOTAL: $${parseFloat(orderSummary.Total).toFixed(2)}</p>
-        `;
-
-                    // 4. Añadir el botón "Completado" basado en el estado (Si el estado es 'Pendiente')
-                    if (orderSummary.Estado === 'Pendiente') {
-                        detailsHTML += `
-                <button id="completeOrderBtn"
-                        data-order-id="${orderId}"
-                        style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; width: 100%;">
-                    PEDIDO COMPLETADO
-                </button>
-            `;
-                    } else {
-                        detailsHTML += `<p style="color: green; font-weight: bold; margin-top: 15px;">✅ Pedido Finalizado.</p>`;
-                    }
-
-                    // 5. Inyectar todo el HTML y adjuntar el evento
-                    orderDetailContent.innerHTML = detailsHTML;
-
-                    const completeBtn = document.getElementById('completeOrderBtn');
-                    if (completeBtn) {
-                        completeBtn.addEventListener('click', () => {
-                            if (confirm(`¿Estás seguro de que el Pedido #${orderId} fue entregado y debe ser marcado como COMPLETADO?`)) {
-                                markOrderAsCompleted(orderId, activeRow); // Pasar la referencia de la fila
-                            }
-                        });
-                    }
-
-                } catch (error) {
-                    orderDetailContent.innerHTML = `<p style="color: red;">Error al obtener detalles: ${error.message}</p>`;
-                }
-            }
-            // 3. CARGA LOS DETALLES DEL PEDIDO EN LA COLUMNA DERECHA
-            /*async function showOrderDetail(orderId, orderSummary) {
-                orderDetailContent.innerHTML = '<p>Cargando detalles...</p>';
-                try {
-                    // Llamar a la nueva ruta para obtener el detalle de productos
-                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/detalle`);
-                    if (!response.ok) {
-                        throw new Error('Error al cargar detalles');
-                    }
-                    const details = await response.json();
-         
-                    let detailsHTML = `
-                      <h4>Pedido #${orderId}</h4>
-               
-                        <p><strong>Mesa:</strong> ${orderSummary.NombreCliente}</p>
-                        <p><strong>Estado:</strong> <span id="currentStatus">${orderSummary.Estado}</span></p>
-                        <p><strong>Tomado por:</strong> ${orderSummary.NombreUsuario}</p>
-                        <hr>
-                        <table class="detail-table">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Cant.</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                       
-               
-                ${orderSummary.Estado === 'Pendiente' ? `
-                    <button id="completeOrderBtn"
-                            data-order-id="${orderId}"
-                            style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; width: 100%;">
-                        PEDIDO COMPLETADO
-                    </button>
-                ` : `<p style="color: green; font-weight: bold;">✅ Pedido Finalizado.</p>`}
-                    `;
-         
-                    details.forEach(item => {
-                        detailsHTML += `
-                            <tr>
-                                <td>${item.NombreProducto}</td>
-                                <td>x${item.Cantidad}</td>
-                                <td>$${parseFloat(item.Subtotal).toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-                   
-                    detailsHTML += `
-                            </tbody>
-                        </table>
-                        <hr>
-                        <p style="font-size: 1.2em; font-weight: bold; text-align: right;">TOTAL: $${parseFloat(orderSummary.Total).toFixed(2)}</p>
-                    `;
-         
-                    orderDetailContent.innerHTML = detailsHTML;
-         
-                    // 🚨 Adjuntar evento SOLO si el botón existe (si el estado es 'Pendiente')
-                    const completeBtn = document.getElementById('completeOrderBtn');
-                    if (completeBtn) {
-                        completeBtn.addEventListener('click', () => {
-                            if (confirm(`¿Estás seguro de que el Pedido #${orderId} fue entregado y debe ser marcado como COMPLETADO?`)) {
-                                markOrderAsCompleted(orderId);
-                            }
-                            });
-                    }
-         
-                        } catch (error) {
-                            orderDetailContent.innerHTML = `<p style="color: red;">Error al obtener detalles: ${error.message}</p>`;
-                        }
-         
-            }*/
-
-
-            // NUEVA FUNCIÓN: Llama a la API para cambiar el estado y actualiza el frontend
-            // 🚨 ACEPTA EL ELEMENTO DE LA FILA COMO PARÁMETRO
-            async function markOrderAsCompleted(orderId, rowElement) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/completar`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Fallo la actualización en el servidor.');
-                    }
-
-                    // 1. Ocultar la fila de la lista izquierda
-                    if (rowElement) {
-                        rowElement.style.display = 'none'; // Oculta la fila que se pasó como argumento
-                    }
-
-                    // 2. Limpiar el panel de detalles de la derecha
-                    orderDetailContent.innerHTML = '<p style="color: green; font-weight: bold;">Orden completada y archivada.</p>';
-
-                    alert(`🎉 Pedido #${orderId} marcado como COMPLETADO.`);
-
-                    // Opcional: Recargar la lista para asegurar la consistencia (aunque el display:none es suficiente)
-                    // loadOrderList();
-
-                } catch (error) {
-                    alert(`Error: No se pudo completar el pedido. ${error.message}`);
-                    console.error('Error PUT:', error);
-                }
-            }
-            // NUEVA FUNCIÓN: Llama a la API para cambiar el estado y actualiza el frontend
-            /*async function markOrderAsCompleted(orderId) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/completar`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-             
-                    if (!response.ok) {
-                        throw new Error('Fallo la actualización en el servidor.');
-                    }
-             
-                    // 1. Ocultar la fila de la lista izquierda
-                    const rowToHide = document.querySelector(`.order-row[data-id="${orderId}"]`);
-                    if (rowToHide) {
-                        rowToHide.style.display = 'none'; // Oculta la fila
-                    }
-                   
-                    // 2. Limpiar el panel de detalles de la derecha
-                    orderDetailContent.innerHTML = '<p style="color: green; font-weight: bold;">Orden completada y archivada.</p>';
-                   
-                    alert(`🎉 Pedido #${orderId} marcado como COMPLETADO.`);
-             
-                } catch (error) {
-                    alert(`Error: No se pudo completar el pedido. ${error.message}`);
-                    console.error('Error PUT:', error);
-                }
-            }*/
-
-            loadOrderList();
-        });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const rol = localStorage.getItem("usuarioRol");
-
-            if (rol === "Administrador") {
-                document.getElementById("btnReportes").style.display = "block";
-                const linkUsuarios = document.getElementById("linkUsuarios");
-                if (linkUsuarios) linkUsuarios.style.display = "inline-block";
-            }
-        });
-
-        document.getElementById("btnReportes").addEventListener("click", loadReport);
-
-        async function loadReport() {
-            const modal = document.getElementById("modalReportes");
-            const tabla = document.getElementById("tablaReporte");
-
-            modal.style.display = "flex";
-            tabla.innerHTML = "<p>Cargando...</p>";
-
-            try {
-                const res = await fetch("http://localhost:3000/api/pedidos/completados");
-                const pedidos = await res.json();
-
-                let totalGeneral = 0;
-
-                let html = `
-            <table class="detail-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Mesa</th>
-                        <th>Fecha</th>
-                        <th>Total</th>
-                        <th>Usuario</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-                pedidos.forEach(p => {
-                    totalGeneral += parseFloat(p.Total);
-
-                    html += `
-                <tr>
-                    <td>#${p.IdPedido}</td>
-                    <td>${p.NombreCliente}</td>
-                    <td>${new Date(p.Fecha).toLocaleString('es-MX')}</td>
-                    <td>$${parseFloat(p.Total).toFixed(2)}</td>
-                    <td>${p.NombreUsuario}</td>
-                </tr>
-            `;
-                });
-
-                html += `
-            </tbody>
-            </table>
-            <hr>
-            <h3 style="text-align:right; color:#5a3d31;">
-                TOTAL VENDIDO: $${totalGeneral.toFixed(2)}
+    <!-- Modal para capturar email -->
+    <div id="modalEmail" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span id="closeEmail" class="close-btn">&times;</span>
+            <h3 style="color: #5a3d31; margin-bottom: 20px;">
+                <i class="fas fa-envelope"></i> Enviar Ticket por Email
             </h3>
-        `;
+            <div id="emailModalContent">
+                <p id="emailMessage">Cargando...</p>
+                <div id="emailForm" style="display: none;">
+                    <div style="margin-bottom: 15px;">
+                        <label for="inputEmail" style="display: block; margin-bottom: 5px; font-weight: bold;">
+                            Correo electrónico:
+                        </label>
+                        <input type="email" id="inputEmail" 
+                            placeholder="ejemplo@correo.com" 
+                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="btnCancelarEmail" class="btn-reportes" style="background-color: #7f8c8d;">
+                            Cancelar
+                        </button>
+                        <button id="btnEnviarTicket" class="btn-reportes">
+                            <i class="fas fa-paper-plane"></i> Enviar Ticket
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                tabla.innerHTML = html;
+    <script>
+    //validacion encargado inventario
+    const userRole = localStorage.getItem('usuarioRol');
 
-            } catch (err) {
-                console.log(err);
-                tabla.innerHTML = `<p style="color:red;">Error al cargar reporte.</p>`;
-            }
-        }
+    if (userRole === 'Encargado de inventario') {
+        // Encargado de Inventario (Debe ver: Inicio, Inventario, Cerrar Sesión)
+        const pedidosLink = document.querySelector('nav a[href*="Gestion de pedidos.html"]');
+        const panelLink = document.querySelector('nav a[href*="Panel.html"]');
+        
+        // 2. Restricción del Encargado: Ocultar Pedidos y Panel
+        if (pedidosLink) pedidosLink.style.display = 'none';
+        if (panelLink) panelLink.style.display = 'none';
+    }
+    //fin validacion
 
-        document.getElementById("closeReportes").onclick = () => {
-            document.getElementById("modalReportes").style.display = "none";
+    document.addEventListener('DOMContentLoaded', () => {
+        const orderListDiv = document.getElementById('orderList');
+        const orderDetailContent = document.getElementById('orderDetailContent');
+
+        // Función para formatear la fecha a un formato legible
+        const formatDate = (dateString) => {
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return new Date(dateString).toLocaleDateString('es-MX', options);
         };
 
-        // --- LÓGICA TOP 5 PRODUCTOS ---
-        const modalTop = document.getElementById("modalTopProductos");
-        const btnTop = document.getElementById("btnTopProductos");
-        const closeTop = document.getElementById("closeTopProductos");
-
-        // Abrir/Cerrar
-        if (btnTop) {
-            btnTop.onclick = function() {
-                modalTop.style.display = "flex";
-
-                // A. Calcular fechas (Hoy y Ayer)
-                const hoy = new Date();
-                const ayer = new Date();
-                ayer.setDate(hoy.getDate() - 1); // Restamos 1 día
-
-                // B. Formatear para los inputs (YYYY-MM-DD)
-                const strHoy = hoy.toISOString().split('T')[0];
-                const strAyer = ayer.toISOString().split('T')[0];
-
-                // C. Poner las fechas en los cuadritos
-                document.getElementById('fechaFin').value = strHoy;
-                document.getElementById('fechaInicio').value = strAyer;
-
-                // D. ¡CONSULTAR AUTOMÁTICAMENTE!
-                cargarTopProductos();
-            }
-        }
-        if(closeTop) closeTop.onclick = () => modalTop.style.display = "none";
-
-        window.onclick = (event) => {
-            if (event.target == modalTop) modalTop.style.display = "none";
-            const modalReportes = document.getElementById("modalReportes");
-            if (modalReportes && event.target == modalReportes) modalReportes.style.display = "none";
-        };
-
-        // Función de Consulta
-        async function cargarTopProductos() {
-            const fInicio = document.getElementById('fechaInicio').value;
-            const fFin = document.getElementById('fechaFin').value;
-            const tbody = document.getElementById('tablaTopProductos');
-            
-            if (!fInicio || !fFin) { alert("Selecciona ambas fechas."); return; }
-            
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Calculando...</td></tr>';
-
+        // 1. CARGA LA LISTA DE PEDIDOS EN LA COLUMNA IZQUIERDA
+        async function loadOrderList() {
             try {
-                const response = await fetch('http://localhost:3000/api/reportes/top', {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ inicio: fInicio, fin: fFin })
-                });
-
-                const lista = await response.json();
-                tbody.innerHTML = ''; 
-
-                if (lista.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hubo ventas.</td></tr>';
-                    return;
+                const response = await fetch('http://localhost:3000/api/pedidos');
+                if (!response.ok) {
+                    throw new Error('Error al cargar la lista de pedidos');
                 }
+                const orders = await response.json();
+                orderListDiv.innerHTML = ''; // Limpiar mensaje de carga
 
-                lista.forEach((item, index) => {
-                    const row = document.createElement('tr');
-                    let medalla = index === 0 ? '' : (index === 1 ? '' : (index === 2 ? '' : ''));
-                    
+                orders.forEach(order => {
+                    const row = document.createElement('div');
+                    row.className = 'order-row';
+                    row.dataset.id = order.IdPedido; // Guardar el ID para el clic
+
                     row.innerHTML = `
-                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${medalla}${item.Nombre}</td>
-                        <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.TotalVendidos}</td>
-                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold;">$${parseFloat(item.DineroGenerado).toFixed(2)}</td>
+                        <div>#${order.IdPedido}</div>
+                        <div>${order.NombreCliente}</div>
+                        <div>${formatDate(order.Fecha)}</div>
+                        <div>$${parseFloat(order.Total).toFixed(2)}</div>
+                        <div class="order-status">${order.Estado}</div>
                     `;
-                    tbody.appendChild(row);
+
+                    // 2. AÑADE EL EVENTO CLICK
+                    row.addEventListener('click', () => {
+                        // Remover 'active' de todas las filas y añadirlo a la seleccionada
+                        document.querySelectorAll('.order-row').forEach(r => r.classList.remove('active'));
+                        row.classList.add('active');
+                        showOrderDetail(order.IdPedido, order);
+                    });
+
+                    orderListDiv.appendChild(row);
                 });
             } catch (error) {
-                console.error(error);
-                tbody.innerHTML = '<tr><td colspan="3" style="color: red; text-align: center;">Error al consultar.</td></tr>';
+                orderListDiv.innerHTML = `<p style="color: red;">Error: No se pudo conectar con el servidor de pedidos. (${error.message})</p>`;
             }
         }
-    </script>
+
+        // 3. CARGA LOS DETALLES DEL PEDIDO EN LA COLUMNA DERECHA
+        async function showOrderDetail(orderId, orderSummary) {
+            orderDetailContent.innerHTML = '<p>Cargando detalles...</p>';
+
+            // Obtenemos la referencia a la fila actual para actualizar su estado visual
+            const activeRow = document.querySelector(`.order-row[data-id="${orderId}"]`);
+
+            try {
+                // Llamar a la nueva ruta para obtener el detalle de productos
+                const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/detalle`);
+                if (!response.ok) {
+                    throw new Error('Error al cargar detalles');
+                }
+                const details = await response.json();
+
+                // 1. Iniciar la estructura HTML
+                let detailsHTML = `
+                    <h4>Pedido #${orderId}</h4>
+                    <p><strong>Mesa:</strong> ${orderSummary.NombreCliente}</p>
+                    <p><strong>Estado:</strong> <span id="currentStatus">${orderSummary.Estado}</span></p>
+                    <p><strong>Tomado por:</strong> ${orderSummary.NombreUsuario}</p>
+                    <hr>
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                // 2. Insertar las filas de productos (detalles)
+                details.forEach(item => {
+                    detailsHTML += `
+                        <tr>
+                            <td>${item.NombreProducto}</td>
+                            <td>x${item.Cantidad}</td>
+                            <td>$${parseFloat(item.Subtotal).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+
+                // 3. Cerrar la tabla y añadir totales con IVA
+                detailsHTML += `
+                    </tbody>
+                </table>
+                <hr>
+                <div style="text-align: right; font-size: 1.1em;">
+                    <div><strong>Subtotal:</strong> $${(parseFloat(orderSummary.Total) - parseFloat(orderSummary.IVA)).toFixed(2)}</div>
+                    <div><strong>IVA (16%):</strong> $${parseFloat(orderSummary.IVA).toFixed(2)}</div>
+                    <div style="font-size: 1.2em; font-weight: bold; border-top: 1px solid #ccc; padding-top: 5px;">
+                        <strong>TOTAL:</strong> $${parseFloat(orderSummary.Total).toFixed(2)}
+                    </div>
+                </div>
+                `;
+
+                // 4. Añadir los botones "Completado" y "Enviar Ticket" basado en el estado
+                if (orderSummary.Estado === 'Pendiente') {
+                    detailsHTML += `
+                        <button id="completeOrderBtn"
+                                data-order-id="${orderId}"
+                                style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; width: 100%;">
+                            PEDIDO COMPLETADO
+                        </button>
+                        <button id="sendTicketBtn"
+                                data-order-id="${orderId}"
+                                style="background-color: #2196F3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%;">
+                            <i class="fas fa-ticket-alt"></i> ENVIAR TICKET
+                        </button>
+                    `;
+                } else {
+                    detailsHTML += `
+                        <p style="color: green; font-weight: bold; margin-top: 15px;">✅ Pedido Finalizado.</p>
+                        <button id="sendTicketBtn"
+                                data-order-id="${orderId}"
+                                style="background-color: #2196F3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%;">
+                            <i class="fas fa-ticket-alt"></i> ENVIAR TICKET
+                        </button>
+                    `;
+                }
+
+                // 5. Inyectar todo el HTML y adjuntar los eventos
+                orderDetailContent.innerHTML = detailsHTML;
+
+                const completeBtn = document.getElementById('completeOrderBtn');
+                if (completeBtn) {
+                    completeBtn.addEventListener('click', () => {
+                        if (confirm(`¿Estás seguro de que el Pedido #${orderId} fue entregado y debe ser marcado como COMPLETADO?`)) {
+                            markOrderAsCompleted(orderId, activeRow);
+                        }
+                    });
+                }
+
+                // Configurar el botón de enviar ticket
+                setupSendTicketButton(orderId, orderSummary, details);
+
+            } catch (error) {
+                orderDetailContent.innerHTML = `<p style="color: red;">Error al obtener detalles: ${error.message}</p>`;
+            }
+        }
+
+        // FUNCIÓN PARA MARCAR PEDIDO COMO COMPLETADO
+        async function markOrderAsCompleted(orderId, rowElement) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/completar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Fallo la actualización en el servidor.');
+                }
+
+                // 1. Ocultar la fila de la lista izquierda
+                if (rowElement) {
+                    rowElement.style.display = 'none';
+                }
+
+                // 2. Limpiar el panel de detalles de la derecha
+                orderDetailContent.innerHTML = '<p style="color: green; font-weight: bold;">Orden completada y archivada.</p>';
+
+                alert(`🎉 Pedido #${orderId} marcado como COMPLETADO.`);
+
+            } catch (error) {
+                alert(`Error: No se pudo completar el pedido. ${error.message}`);
+                console.error('Error PUT:', error);
+            }
+        }
+
+        // FUNCIÓN PARA MANEJAR EL ENVÍO DE TICKETS
+        function setupSendTicketButton(orderId, orderSummary, details) {
+            const sendTicketBtn = document.getElementById('sendTicketBtn');
+            if (sendTicketBtn) {
+                sendTicketBtn.addEventListener('click', () => {
+                    prepareTicketEmail(orderId, orderSummary, details);
+                });
+            }
+        }
+
+        // FUNCIÓN PARA PREPARAR EL ENVÍO DEL TICKET
+        async function prepareTicketEmail(orderId, orderSummary, details) {
+            const modalEmail = document.getElementById('modalEmail');
+            const emailMessage = document.getElementById('emailMessage');
+            const emailForm = document.getElementById('emailForm');
+            const inputEmail = document.getElementById('inputEmail');
+            
+            // Mostrar modal y resetear
+            modalEmail.style.display = 'flex';
+            emailForm.style.display = 'none';
+            emailMessage.textContent = 'Verificando información del cliente...';
+            
+            try {
+                // Obtener información del cliente
+                const response = await fetch(`http://localhost:3000/api/pedidos/${orderId}/cliente`);
+                const clienteData = await response.json();
+                
+                if (clienteData.email) {
+                    // Cliente tiene email - enviar directamente
+                    emailMessage.innerHTML = `
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #a5d6a7;">
+                            <p style="margin: 0; color: #2e7d32;">
+                                <i class="fas fa-check-circle"></i> 
+                                El ticket se enviará a: <strong>${clienteData.email}</strong>
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 0.9em;">
+                                Cliente: ${clienteData.nombre}
+                            </p>
+                        </div>
+                    `;
+                    emailForm.style.display = 'block';
+                    inputEmail.value = clienteData.email;
+                    inputEmail.style.display = 'none';
+                    
+                    // Configurar botón de envío
+                    const btnEnviar = document.getElementById('btnEnviarTicket');
+                    btnEnviar.onclick = () => sendTicketEmail(orderId, clienteData.email, orderSummary, details);
+                    
+                } else {
+                    // Cliente no tiene email - mostrar formulario
+                    emailMessage.innerHTML = `
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; border: 1px solid #ffb74d;">
+                            <p style="margin: 0; color: #e65100;">
+                                <i class="fas fa-info-circle"></i> 
+                                El cliente <strong>${clienteData.nombre}</strong> no tiene email registrado.
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 0.9em;">
+                                Por favor, ingresa un correo electrónico para enviar el ticket.
+                            </p>
+                        </div>
+                    `;
+                    emailForm.style.display = 'block';
+                    inputEmail.style.display = 'block';
+                    inputEmail.value = '';
+                    inputEmail.focus();
+                    
+                    // Configurar botón de envío
+                    const btnEnviar = document.getElementById('btnEnviarTicket');
+                    btnEnviar.onclick = () => {
+                        const email = inputEmail.value.trim();
+                        if (!email || !validateEmail(email)) {
+                            alert('Por favor ingresa un correo electrónico válido.');
+                            return;
+                        }
+                        sendTicketEmail(orderId, email, orderSummary, details);
+                    };
+                }
+                
+            } catch (error) {
+                emailMessage.innerHTML = `
+                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; border: 1px solid #ef5350;">
+                        <p style="margin: 0; color: #c62828;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            Error al cargar información del cliente.
+                        </p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        // FUNCIÓN PARA ENVIAR EL TICKET POR EMAIL
+        async function sendTicketEmail(orderId, email, orderSummary, details) {
+            const btnEnviar = document.getElementById('btnEnviarTicket');
+            const originalText = btnEnviar.innerHTML;
+            
+            try {
+                // Mostrar loading
+                btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                btnEnviar.disabled = true;
+                
+                const response = await fetch('http://localhost:3000/api/pedidos/enviar-ticket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        email: email,
+                        orderSummary: orderSummary,
+                        details: details
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Ticket enviado correctamente a: ' + email);
+                    document.getElementById('modalEmail').style.display = 'none';
+                } else {
+                    throw new Error(result.message || 'Error al enviar el ticket');
+                }
+                
+            } catch (error) {
+                alert('❌ Error al enviar el ticket: ' + error.message);
+                console.error('Error enviando ticket:', error);
+            } finally {
+                // Restaurar botón
+                btnEnviar.innerHTML = originalText;
+                btnEnviar.disabled = false;
+            }
+        }
+
+        // FUNCIÓN PARA VALIDAR EMAIL
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // EVENT LISTENERS PARA EL MODAL DE EMAIL
+        document.getElementById('closeEmail').addEventListener('click', () => {
+            document.getElementById('modalEmail').style.display = 'none';
+        });
+
+        document.getElementById('btnCancelarEmail').addEventListener('click', () => {
+            document.getElementById('modalEmail').style.display = 'none';
+        });
+
+        // Iniciar la carga de pedidos
+        loadOrderList();
+    });
+
+    // ==========================================
+    // CÓDIGO EXISTENTE PARA REPORTES Y TOP PRODUCTOS
+    // ==========================================
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const rol = localStorage.getItem("usuarioRol");
+
+        if (rol === "Administrador") {
+            document.getElementById("btnReportes").style.display = "block";
+            const linkUsuarios = document.getElementById("linkUsuarios");
+            if (linkUsuarios) linkUsuarios.style.display = "inline-block";
+        }
+    });
+
+    document.getElementById("btnReportes").addEventListener("click", loadReport);
+
+    async function loadReport() {
+        const modal = document.getElementById("modalReportes");
+        const tabla = document.getElementById("tablaReporte");
+
+        modal.style.display = "flex";
+        tabla.innerHTML = "<p>Cargando...</p>";
+
+        try {
+            const res = await fetch("http://localhost:3000/api/pedidos/completados");
+            const pedidos = await res.json();
+
+            let totalGeneral = 0;
+
+            let html = `
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mesa</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            pedidos.forEach(p => {
+                totalGeneral += parseFloat(p.Total);
+
+                html += `
+                    <tr>
+                        <td>#${p.IdPedido}</td>
+                        <td>${p.NombreCliente}</td>
+                        <td>${new Date(p.Fecha).toLocaleString('es-MX')}</td>
+                        <td>$${parseFloat(p.Total).toFixed(2)}</td>
+                        <td>${p.NombreUsuario}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+                <hr>
+                <h3 style="text-align:right; color:#5a3d31;">
+                    TOTAL VENDIDO: $${totalGeneral.toFixed(2)}
+                </h3>
+            `;
+
+            tabla.innerHTML = html;
+
+        } catch (err) {
+            console.log(err);
+            tabla.innerHTML = `<p style="color:red;">Error al cargar reporte.</p>`;
+        }
+    }
+
+    document.getElementById("closeReportes").onclick = () => {
+        document.getElementById("modalReportes").style.display = "none";
+    };
+
+    // --- LÓGICA TOP 5 PRODUCTOS ---
+    const modalTop = document.getElementById("modalTopProductos");
+    const btnTop = document.getElementById("btnTopProductos");
+    const closeTop = document.getElementById("closeTopProductos");
+
+    // Abrir/Cerrar
+    if (btnTop) {
+        btnTop.onclick = function() {
+            modalTop.style.display = "flex";
+
+            // A. Calcular fechas (Hoy y Ayer)
+            const hoy = new Date();
+            const ayer = new Date();
+            ayer.setDate(hoy.getDate() - 1); // Restamos 1 día
+
+            // B. Formatear para los inputs (YYYY-MM-DD)
+            const strHoy = hoy.toISOString().split('T')[0];
+            const strAyer = ayer.toISOString().split('T')[0];
+
+            // C. Poner las fechas en los cuadritos
+            document.getElementById('fechaFin').value = strHoy;
+            document.getElementById('fechaInicio').value = strAyer;
+
+            // D. ¡CONSULTAR AUTOMÁTICAMENTE!
+            cargarTopProductos();
+        }
+    }
+    if(closeTop) closeTop.onclick = () => modalTop.style.display = "none";
+
+    window.onclick = (event) => {
+        if (event.target == modalTop) modalTop.style.display = "none";
+        const modalReportes = document.getElementById("modalReportes");
+        if (modalReportes && event.target == modalReportes) modalReportes.style.display = "none";
+        const modalEmail = document.getElementById("modalEmail");
+        if (modalEmail && event.target == modalEmail) modalEmail.style.display = "none";
+    };
+
+    // Función de Consulta
+    async function cargarTopProductos() {
+        const fInicio = document.getElementById('fechaInicio').value;
+        const fFin = document.getElementById('fechaFin').value;
+        const tbody = document.getElementById('tablaTopProductos');
+        
+        if (!fInicio || !fFin) { alert("Selecciona ambas fechas."); return; }
+        
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Calculando...</td></tr>';
+
+        try {
+            const response = await fetch('http://localhost:3000/api/reportes/top', {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inicio: fInicio, fin: fFin })
+            });
+
+            const lista = await response.json();
+            tbody.innerHTML = ''; 
+
+            if (lista.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hubo ventas.</td></tr>';
+                return;
+            }
+
+            lista.forEach((item, index) => {
+                const row = document.createElement('tr');
+                let medalla = index === 0 ? '' : (index === 1 ? '' : (index === 2 ? '' : ''));
+                
+                row.innerHTML = `
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${medalla}${item.Nombre}</td>
+                    <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">${item.TotalVendidos}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold;">$${parseFloat(item.DineroGenerado).toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error(error);
+            tbody.innerHTML = '<tr><td colspan="3" style="color: red; text-align: center;">Error al consultar.</td></tr>';
+        }
+    }
+</script>
+
 </body>
 
 </html>

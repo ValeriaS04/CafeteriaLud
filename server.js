@@ -200,23 +200,24 @@ app.put('/api/pedidos/:id/completar', async (req, res) => {
 // --- RUTAS DE PEDIDOS PARA EL PANEL DE VISUALIZACIÓN ---
 
 // Ruta 1: Para obtener la lista de pedidos principales (Panel, tabla izquierda)
-// Elimina la columna 'Estado' de la consulta
 app.get('/api/pedidos', async (req, res) => {
   try {
     const query = `
-            SELECT 
-                p.IdPedido,
-                c.Nombre AS NombreCliente,  -- Nombre de la mesa/cliente
-                p.Fecha,
-                p.Total,
-                u.Nombre AS NombreUsuario,   -- Nombre del empleado
-                p.Estado
-            FROM Pedidos p
-            JOIN Clientes c ON p.IdCliente = c.IdCliente
-            JOIN Usuarios u ON p.IdUsuario = u.IdUsuario
-            WHERE P.Estado = 'Pendiente'
-            ORDER BY p.Fecha DESC;
-        `;
+      SELECT 
+        p.IdPedido,
+        c.Nombre AS NombreCliente,
+        p.Fecha,
+        p.Total,
+        ROUND(p.Total / 1.16, 2) as Subtotal,
+        CalcularIVA(ROUND(p.Total / 1.16, 2)) as IVA,
+        u.Nombre AS NombreUsuario,
+        p.Estado
+      FROM Pedidos p
+      JOIN Clientes c ON p.IdCliente = c.IdCliente
+      JOIN Usuarios u ON p.IdUsuario = u.IdUsuario
+      WHERE p.Estado = 'Pendiente'
+      ORDER BY p.Fecha DESC;
+    `;
 
     const [results] = await pool.query(query);
     res.json(results);
@@ -250,11 +251,153 @@ app.get('/api/pedidos/:id/detalle', async (req, res) => {
   }
 });
 
+// ======================================
+// RUTA: Obtener información del cliente de un pedido
+// ======================================
+app.get('/api/pedidos/:id/cliente', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = `
+            SELECT c.Nombre, c.Email 
+            FROM Pedidos p
+            JOIN Clientes c ON p.IdCliente = c.IdCliente
+            WHERE p.IdPedido = ?
+        `;
+        const [results] = await pool.query(query, [id]);
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+        
+        res.json({
+            nombre: results[0].Nombre,
+            email: results[0].Email
+        });
+        
+    } catch (error) {
+        console.error('Error al obtener cliente del pedido:', error);
+        res.status(500).json({ error: 'Error al obtener información del cliente' });
+    }
+});
 
+// ======================================
+// RUTA: Enviar ticket por email
+// ======================================
+app.post('/api/pedidos/enviar-ticket', async (req, res) => {
+    const { orderId, email, orderSummary, details } = req.body;
 
+    try {
+        // 🟢 NUEVO: Calcular subtotal e IVA para el ticket
+        const subtotal = parseFloat(orderSummary.Total) - parseFloat(orderSummary.IVA);
+        
+        // Configurar el transportador
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        // 🟢 MODIFICADO: Ticket con desglose de IVA
+        const ticketHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { font-family: Arial, sans-serif; color: #333; }
+                    .ticket { max-width: 600px; margin: 0 auto; border: 2px solid #5a3d31; border-radius: 10px; padding: 20px; }
+                    .header { text-align: center; background: #5a3d31; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    .details { margin: 15px 0; }
+                    .product-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                    .product-table th, .product-table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+                    .product-table th { background: #f5f5f5; }
+                    .total-breakdown { text-align: right; font-size: 1.1em; margin-top: 20px; }
+                    .total-breakdown div { margin: 5px 0; }
+                    .total-final { font-size: 1.3em; font-weight: bold; border-top: 2px solid #5a3d31; padding-top: 10px; }
+                    .footer { text-align: center; margin-top: 30px; color: #666; font-size: 0.9em; }
+                </style>
+            </head>
+            <body>
+                <div class="ticket">
+                    <div class="header">
+                        <h1>🍵 Cafetería JAVA</h1>
+                        <h2>Ticket de Compra #${orderId}</h2>
+                    </div>
+                    
+                    <div class="details">
+                        <p><strong>Cliente:</strong> ${orderSummary.NombreCliente}</p>
+                        <p><strong>Fecha:</strong> ${new Date(orderSummary.Fecha).toLocaleString('es-MX')}</p>
+                        <p><strong>Atendido por:</strong> ${orderSummary.NombreUsuario}</p>
+                        <p><strong>Estado:</strong> ${orderSummary.Estado}</p>
+                    </div>
+                    
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${details.map(item => `
+                                <tr>
+                                    <td>${item.NombreProducto}</td>
+                                    <td>${item.Cantidad}</td>
+                                    <td>$${parseFloat(item.PrecioUnitario).toFixed(2)}</td>
+                                    <td>$${parseFloat(item.Subtotal).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="total-breakdown">
+                        <div><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</div>
+                        <div><strong>IVA (16%):</strong> $${parseFloat(orderSummary.IVA).toFixed(2)}</div>
+                        <div class="total-final"><strong>TOTAL:</strong> $${parseFloat(orderSummary.Total).toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>¡Gracias por su preferencia!</p>
+                        <p>📍 Visítanos nuevamente en Cafetería JAVA</p>
+                        <p>📞 Para cualquier duda, contáctanos</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Configurar el correo
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: `🎫 Ticket de Compra - Cafetería JAVA #${orderId}`,
+            html: ticketHTML
+        };
+
+        // Enviar el correo
+        let info = await transporter.sendMail(mailOptions);
+        console.log("✅ Ticket enviado: %s", info.messageId);
+        
+        res.json({ 
+            success: true, 
+            message: 'Ticket enviado correctamente',
+            messageId: info.messageId
+        });
+
+    } catch (error) {
+        console.error("❌ Error al enviar el ticket:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error al enviar el ticket: ' + error.message 
+        });
+    }
+});
 // RUTAS PARA INSERTAR DATOS (POST)
 
-// Ruta para registrar un nuevo pedido completo
 // Ruta para registrar un nuevo pedido completo
 app.post('/api/pedidos', async (req, res) => {
   // 1. Recibir los datos del frontend (incluyendo IdCliente)
@@ -265,21 +408,26 @@ app.post('/api/pedidos', async (req, res) => {
     connection = await pool.getConnection();
     await connection.beginTransaction();
 
+    // 🟢 NUEVO: Calcular IVA usando la función MySQL
+    const [ivaResult] = await connection.query('SELECT CalcularIVA(?) as iva', [total]);
+    const iva = parseFloat(ivaResult[0].iva);
+    const totalConIVA = parseFloat((parseFloat(total) + iva).toFixed(2));
+
     // 2. Insertar en la tabla PEDIDOS (IdCliente, Total, IdUsuario, Estado)
+    // 🟢 CAMBIO: Usar totalConIVA en lugar de total
     const pedidoQuery = 'INSERT INTO Pedidos (IdCliente, Total, IdUsuario, Estado) VALUES (?, ?, ?, "Pendiente")';
-    const [pedidoResult] = await connection.query(pedidoQuery, [idCliente, total, idUsuario]);
+    const [pedidoResult] = await connection.query(pedidoQuery, [idCliente, totalConIVA, idUsuario]);
     const idPedido = pedidoResult.insertId;
 
     // 3. Insertar cada producto en DETALLE_PEDIDOS y actualizar stock
     for (const producto of productos) {
       // Insertar detalle (DetallePedidos)
       await connection.query(
-        // OJO: Asegúrate de que el nombre de la tabla sea 'DetallePedidos' o 'Detalle_Pedidos' según tu esquema
         'INSERT INTO detallepedidos (IdPedido, IdProducto, Cantidad, Subtotal) VALUES (?, ?, ?, ?)',
         [idPedido, producto.id, producto.cantidad, producto.subtotal]
       );
 
-      // Actualizar stock (Productos)
+      // Actualizar stock (Productos) - comentado por ahora
       /*await connection.query(
           'UPDATE Productos SET Stock = Stock - ? WHERE IdProducto = ?',
           [producto.cantidad, producto.id]
@@ -298,12 +446,10 @@ app.post('/api/pedidos', async (req, res) => {
     if (connection) {
       await connection.rollback();
     }
-    // Imprime el error en la consola negra
     console.error('❌ ERROR REAL:', error.sqlMessage || error.message);
 
     res.status(500).json({
       success: false,
-      // CAMBIO: Usamos la variable error.sqlMessage en lugar del texto fijo
       message: error.sqlMessage || error.message
     });
   } finally {
