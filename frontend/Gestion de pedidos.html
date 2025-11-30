@@ -39,16 +39,7 @@
     </div>
 
     <div class="actions">
-      <!--seleccionar mesa-->
-      <!---<div class="mesa-selector-container">
-        <label for="selectMesa">Mesa/Cliente</label>
-        <select id="selectMesa">
-          <option value="1">Mesa 1</option>
-          <option value="2">Mesa 2</option>
-          <option value="3">Mesa 3</option>
-          <option value="4">Mesa 4</option>
-        </select>
-      </div> --->
+    
     </div>
   </main>
 
@@ -121,7 +112,7 @@
       </form>
     </div>
   </div>
-  <div id="clienteInitModal" class="modal" style="display: flex;">
+  <div id="clienteInitModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 600px;">
         <h2 style="color: #6d4c41;">Seleccionar Cliente</h2>
         <p>Identifica la orden antes de comenzar.</p>
@@ -160,7 +151,7 @@
             <div id="formNuevoCliente" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
                 <h4 style="margin-top: 0; color: #d35400;">Registrar Nuevo Cliente</h4>
                 <input type="text" id="nuevoNombreCliente" placeholder="Nombre completo" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="email" id="nuevoEmailCliente" placeholder="Correo (Opcional)" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="email" id="nuevoEmailCliente" placeholder="Correo" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
                 <button id="btnRegistrarCliente" class="ok" style="width: 100%;">Registrar y Seleccionar</button>
                 <button id="btnCancelarRegistro" style="width: 100%; margin-top: 5px; background: none; border: none; color: #666; cursor: pointer;">Cancelar registro</button>
             </div>
@@ -382,9 +373,9 @@ function mostrarResumenPedido() {
         }
 
         // D. Forzar Modal de Cliente al inicio
-        if (!inputIdFinal.value) {
+        /*if (!inputIdFinal.value) {
             clienteInitModal.style.display = 'flex';
-        }
+        }*/
     });
 
     // --- EVENTOS MODAL CLIENTE ---
@@ -437,7 +428,8 @@ function mostrarResumenPedido() {
         const nombre = document.getElementById('nuevoNombreCliente').value.trim();
         const email = document.getElementById('nuevoEmailCliente').value.trim();
         if(!nombre) return alert("El nombre es obligatorio.");
-
+        if (!email) return alert("⚠️ El correo es obligatorio para nuevos clientes.");
+        
         try {
             const res = await fetch('http://localhost:3000/api/clientes', {
                 method: 'POST',
@@ -467,6 +459,14 @@ function mostrarResumenPedido() {
     btnConfirmarMesa.addEventListener('click', () => {
         if (inputIdFinal.value) {
             clienteInitModal.style.display = 'none';
+            // 🚨 CAMBIO CLAVE: Llama a la función de confirmación final
+        // Esto evita que el usuario tenga que dar dos clics
+        if (pedidoActual.length > 0) {
+            // Simulamos el clic del botón de envío final (cerrarYConfirmar)
+            cerrarYConfirmarButton.click(); 
+        } else {
+            alert(`✅ Cliente: ${clienteSeleccionadoNombre} seleccionado. Añade productos para finalizar.`);
+        }
         }
     });
     
