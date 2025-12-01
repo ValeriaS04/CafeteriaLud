@@ -134,7 +134,8 @@ async function cargarProductos() {
         const productos = await response.json();
         console.log(`✅ ${productos.length} productos recibidos`);
         
-        actualizarCantidadesProductos(productos);
+        // ✅ CAMBIO IMPORTANTE: Llamar a la función que crea las tarjetas
+        renderizarTarjetas(productos);
         
     } catch (error) {
         console.error('❌ Error al cargar productos:', error);
@@ -536,15 +537,24 @@ function cerrarModalReporte() {
 
 // Función para Abrir el Modal de Ordenar
 function abrirModalOrdenar(nombreProducto) {
-    if (productoTitulo && ordenProductoNombre) {
-        productoTitulo.textContent = nombreProducto;
-        ordenProductoNombre.value = nombreProducto;
-        document.getElementById('ordenCantidad').value = 1; 
-        document.getElementById('ordenMotivo').value = '';
-        ordenModal.style.display = 'flex';
-    } else {
+    // Aseguramos que los elementos existan
+    if (!ordenModal || !productoTitulo || !ordenProductoNombre) { 
         console.error('❌ Elementos del modal de ordenar no encontrados');
+        return;
     }
+    
+    productoTitulo.textContent = nombreProducto;
+    ordenProductoNombre.value = nombreProducto;
+    
+    // Si el campo de cantidad existe, lo reseteamos
+    const ordenCantidadInput = document.getElementById('ordenCantidad');
+    if(ordenCantidadInput) ordenCantidadInput.value = 1; 
+
+    // Si el campo de motivo existe, lo reseteamos
+    const ordenMotivoTextarea = document.getElementById('ordenMotivo');
+    if(ordenMotivoTextarea) ordenMotivoTextarea.value = '';
+
+    ordenModal.style.display = 'flex';
 }
 
 // Envío de orden por correo
@@ -682,6 +692,92 @@ if (ordenForm) {
     });
 }
 
+// ==================== NUEVAS FUNCIONES PARA EL MODAL NUEVO INSUMO ====================
+
+const modalNuevoInsumo = document.getElementById('modalNuevoInsumo');
+const formNuevoInsumo = document.getElementById('formNuevoInsumo');
+const btnAbrirNuevoInsumo = document.getElementById('btnAbrirNuevoInsumo');
+const newCategoriaInput = document.getElementById('newCategoria');
+
+// Función para abrir el modal del nuevo insumo
+function abrirModalNuevoInsumo() {
+    if (!modalNuevoInsumo) {
+        console.error('El modal de Nuevo Insumo no existe.');
+        return;
+    }
+    // 1. Establecer la Categoría correcta
+    const categoriaId = obtenerCategoriaActual();
+    newCategoriaInput.value = categoriaId;
+    
+    console.log(`Abriendo modal para Categoría ID: ${categoriaId}`);
+    
+    // 2. Mostrar el modal
+    modalNuevoInsumo.style.display = 'flex';
+}
+
+// Función para manejar el envío del formulario de nuevo insumo
+async function manejarNuevoInsumo(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('newNombre').value;
+    const cantidad = document.getElementById('newStock').value;
+    const imagen = document.getElementById('newImagen').value;
+    const categoria = document.getElementById('newCategoria').value; // Ya establecido al abrir el modal
+
+    const nuevoInsumoData = {
+        nombre: nombre,
+        cantidad: parseInt(cantidad),
+        imagen: imagen,
+        categoria: parseInt(categoria)
+    };
+
+    try {
+        console.log('📦 Intentando guardar nuevo insumo:', nuevoInsumoData);
+        
+        const response = await fetch(`${API_URL}/api/inventario/nuevo-insumo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(nuevoInsumoData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`✅ ¡${nombre} agregado correctamente al inventario!`);
+            modalNuevoInsumo.style.display = 'none';
+            formNuevoInsumo.reset(); // Limpiar formulario
+            cargarProductos(); // Recargar las tarjetas para mostrar el nuevo insumo
+        } else {
+            throw new Error(data.message || 'Error desconocido al guardar el insumo.');
+        }
+
+    } catch (error) {
+        console.error('❌ Error al registrar nuevo insumo:', error);
+        alert(`Error al guardar: ${error.message}`);
+    }
+}
+
+// ==================== CONFIGURACIÓN DE EVENT LISTENERS ====================
+
+// Event Listener para abrir el modal al hacer clic en el botón "Nuevo Insumo"
+if (btnAbrirNuevoInsumo) {
+    btnAbrirNuevoInsumo.addEventListener('click', abrirModalNuevoInsumo);
+}
+
+// Event Listener para enviar el formulario de nuevo insumo
+if (formNuevoInsumo) {
+    formNuevoInsumo.addEventListener('submit', manejarNuevoInsumo);
+}
+
+// Configurar el cierre del modal de nuevo insumo al hacer clic fuera
+window.addEventListener('click', function(event) {
+    if (event.target === modalNuevoInsumo) {
+        modalNuevoInsumo.style.display = 'none';
+    }
+});
+
 // ==================== CONFIGURACIÓN DE EVENT LISTENERS GLOBALES ====================
 
 // Cerrar modales
@@ -726,6 +822,95 @@ function mostrarErrorCarga(error) {
                 <button onclick="cargarProductos()">Reintentar</button>
             </div>
         `;
+    }
+}
+
+
+// Función para renderizar las tarjetas estilo "Pedidos" en el Inventario
+function renderizarTarjetas(productos) {
+    const container = document.getElementById('contenedorInventario'); 
+
+    if (!container) {
+        console.error("❌ Error: No se encontró 'contenedorInventario'");
+        return;
+    }
+
+    container.innerHTML = '';
+
+    if (productos.length === 0) {
+        container.innerHTML = '<p style="text-align:center; width:100%;">No hay productos en esta categoría.</p>';
+        return;
+    }
+
+    let htmlContent = '';
+
+    productos.forEach(prod => {
+        // Validación de datos
+        const imagen = prod.ImagenUrl || prod.ImagenURL || 'https://via.placeholder.com/150?text=Sin+Foto';
+        const nombre = prod.NombreProducto || prod.Nombre || 'Producto';
+        const cantidad = prod.Cantidad !== undefined ? parseFloat(prod.Cantidad) : 0;
+        const id = prod.IdInventario;
+
+        // Generamos la tarjeta con el diseño de INPUT + ICONOS
+        htmlContent += `
+            <div class="card producto" data-id="${id}">
+                <div class="card-image-box">
+                    <img src="${imagen}" alt="${nombre}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
+                </div>
+                
+                <div class="card-content">
+                    <h3>${nombre}</h3>
+                    
+                    <div class="qty-control">
+                        <span>Cantidad:</span>
+                        <input type="text" value="${cantidad}" readonly>
+                    </div>
+
+                    <div class="icon-buttons">
+                        <button class="btn-icon btn_editar" onclick="abrirModal('${nombre}')" title="Editar Stock">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        
+                        <button class="btn-icon btn_ordenar" onclick="abrirModalOrdenar('${nombre}')" title="Ordenar / Agregar">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = htmlContent;
+}
+
+async function actualizarProducto(nombreProducto, nuevaCantidad) {
+    try {
+        const idProducto = await obtenerIdProducto(nombreProducto);
+        
+        if (!idProducto) {
+            alert('Error: Producto no encontrado');
+            return;
+        }
+        
+        const response = await fetch(`${API_URL}/api/inventario/producto/${idProducto}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cantidad: nuevaCantidad })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('¡Inventario actualizado correctamente!');
+            cerrarModal();
+            cargarProductos(); // <--- ESTO ACTUALIZA LA VISTA AUTOMÁTICAMENTE
+        } else {
+            throw new Error(data.message);
+        }
+        
+    } catch (error) {
+        console.error(error);
+        alert('Error: ' + error.message);
     }
 }
 

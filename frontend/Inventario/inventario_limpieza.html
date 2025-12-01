@@ -24,50 +24,17 @@
         </nav>
     </header>
     <main>
-        <h2 style="font-size: 32px; font-weight: bold;"><a href="inventario_menu.html"> Inventario</a> / Limpieza</h2>
-        <section class="inventario">
-            <!--Bolsa de basura-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Bolsa de basura</h3>
-                <img src="imagenes/bolsa_basura.jpg" alt="Bolsa de basura">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Esponja-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Esponja</h3>
-                <img src="imagenes/esponja.jpg" alt="Esponja">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Desinfectante-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Desinfectante</h3>
-                <img src="imagenes/desinfectante.jpg" alt="Desinfectante">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Microfibra-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Microfibra</h3>
-                <img src="imagenes/microfibra.jpg" alt="Microfibra">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-
-        </section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 32px; font-weight: bold; margin: 0;">
+                <a href="inventario_menu.html" style="text-decoration:none; ">Inventario</a> / Limpieza
+            </h2>
+            <button id="btnAbrirNuevoInsumo" class="btn_ordenar" style="width: auto; padding: 10px 20px; background-color: #5d4037; color: #ffffff;">
+                <i class="fa-solid fa-plus"></i> Nuevo Insumo
+            </button>
+        </div>        
+        <section class="inventario" id="contenedorInventario">
+            <p style="text-align: center; width: 100%;">Cargando inventario...</p>
+        </section> 
     </main>
     <!--Modal para editar-->
     <div id="modal_editar" class="modal">
@@ -112,6 +79,35 @@
                 Enviar Orden por Correo
             </button>
         </form>
+    </div>
+    </div>
+
+    <!-- Modal nuevo insumo-->
+    <div id="modalNuevoInsumo" class="modal">
+        <div class="modal_contenido">
+            <span class="cerrar" onclick="document.getElementById('modalNuevoInsumo').style.display='none'">&times;</span>
+            <h3 style="color: #5d4037;">Nuevo Producto</h3>
+            <form id="formNuevoInsumo">
+                <div class="form_grupo">
+                    <label>Nombre:</label>
+                    <input type="text" id="newNombre" required placeholder="Ej. Jabones">
+                </div>
+                <div class="form_grupo">
+                    <label>Stock Inicial:</label>
+                    <input type="number" id="newStock" required value="0" step="1">
+                </div>
+                <div class="form_grupo">
+                    <label>URL Imagen:</label>
+                    <input type="text" id="newImagen" placeholder="https://...">
+                </div>
+                <input type="hidden" id="newCategoria" value="4">
+
+                <div class="botones_modal">
+                    <button type="button" class="btn_cancelar" onclick="document.getElementById('modalNuevoInsumo').style.display='none'">Cancelar</button>
+                    <button type="submit" class="btn_guardar" style="background-color: #28a745;">Guardar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!--Pie de página-->

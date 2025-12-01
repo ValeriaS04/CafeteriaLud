@@ -102,7 +102,8 @@ module.exports = function(pool) {
         SELECT 
           IdInventario,
           NombreProducto,
-          Cantidad
+          Cantidad,
+          ImagenUrl
         FROM inventario 
         WHERE IdInventario = ?
       `;
@@ -153,6 +154,7 @@ module.exports = function(pool) {
           i.IdInventario,
           i.NombreProducto,
           i.Cantidad,
+          i.ImagenUrl,
           c.Nombre as Categoria
         FROM inventario i
         JOIN categorias_inventario c ON i.IdCategoriaInventario = c.IdCategoriaInventario
@@ -215,7 +217,8 @@ module.exports = function(pool) {
         INSERT INTO inventario (
           IdCategoriaInventario,
           NombreProducto,
-          Cantidad
+          Cantidad,
+          ImagenUrl
         ) VALUES (?, ?, ?)
       `;
       

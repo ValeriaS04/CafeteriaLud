@@ -24,60 +24,18 @@
         </nav>
     </header>
     <main>
-        <h2 style="font-size: 32px; font-weight: bold;"><a href="inventario_menu.html"> Inventario</a> / Envases</h2>
-        <section class="inventario">
-            <!--Bebida caliente-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Bebida caliente</h3>
-                <img src="imagenes/vaso_caliente.jpg" alt="Bebida caliente">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Bebida fría-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Bebida fría</h3>
-                <img src="imagenes/vaso_frio.jpg" alt="Leche entera">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Servilletas-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Servilletas</h3>
-                <img src="imagenes/servilletas.jpg" alt="Servilletas">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Manga aislante-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Manga aislante</h3>
-                <img src="imagenes/manga_aislante.jpg" alt="Manga aislante">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
-            <!--Popotes-->
-            <div class="producto">
-                <h3 class="nombre_del_producto">Popotes</h3>
-                <img src="imagenes/popotes.jpg" alt="Popotes">
-                <p>Cantidad: <input type="number" readonly class="cantidad_producto"></p>
-                <div class="botones">
-                    <button class="btn_editar"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="btn_ordenar"><i class="fa-solid fa-plus"></i></button>
-                </div>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 32px; font-weight: bold; margin: 0;">
+                <a href="inventario_menu.html" style="text-decoration:none; ">Inventario</a> / Envases
+            </h2>
+            <button id="btnAbrirNuevoInsumo" class="btn_ordenar" style="width: auto; padding: 10px 20px; background-color: #5d4037; color: #ffffff;">
+                <i class="fa-solid fa-plus"></i> Nuevo Insumo
+            </button>
+        </div>        
+        <section class="inventario" id="contenedorInventario">
+            <p style="text-align: center; width: 100%;">Cargando inventario...</p>
+        </section> 
 
-        </section>
     </main>
     <!--Modal para editar-->
     <div id="modal_editar" class="modal">
@@ -122,6 +80,35 @@
                 Enviar Orden por Correo
             </button>
         </form>
+    </div>
+</div>
+
+<!-- Modal nuevo insumo-->
+    <div id="modalNuevoInsumo" class="modal">
+        <div class="modal_contenido">
+            <span class="cerrar" onclick="document.getElementById('modalNuevoInsumo').style.display='none'">&times;</span>
+            <h3 style="color: #5d4037;">Nuevo Insumo</h3>
+            <form id="formNuevoInsumo">
+                <div class="form_grupo">
+                    <label>Nombre:</label>
+                    <input type="text" id="newNombre" required placeholder="Ej. Vaso bebida fria">
+                </div>
+                <div class="form_grupo">
+                    <label>Stock Inicial:</label>
+                    <input type="number" id="newStock" required value="0" step="1">
+                </div>
+                <div class="form_grupo">
+                    <label>URL Imagen:</label>
+                    <input type="text" id="newImagen" placeholder="https://...">
+                </div>
+                <input type="hidden" id="newCategoria" value="3">
+
+                <div class="botones_modal">
+                    <button type="button" class="btn_cancelar" onclick="document.getElementById('modalNuevoInsumo').style.display='none'">Cancelar</button>
+                    <button type="submit" class="btn_guardar" style="background-color: #28a745;">Guardar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!--Pie de página-->

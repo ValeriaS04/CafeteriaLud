@@ -56,111 +56,139 @@ footer nav a {
     text-decoration: none;
     margin: 0 5px;
 }
-.producto p {
-    font-size: 0.85rem;  
-    margin: 5px 0;
-    white-space: nowrap; /* Evita que se rompa la línea */
-}
-.menu_inventario {
-    display: flex;
-    flex-direction: column;   
-    align-items: center;      
-    justify-content: center;  
-    gap: 25px;                
-    height: 60vh;             
-}
-.menu_inventario button {
-    background-color: #d7ccc8;
-    color: #3e2723;
-    font-size: 1.4rem;
-    font-weight: bold;
-    padding: 18px 80px;       
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    width: 300px;             
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: all 0.3s ease;
-    text-align: center;
-}
-.menu_inventario button:hover {
-    background-color: #a1887f;
-    color: white;
-    transform: scale(1.05);
-}
-.menu_inventario a {
-    color: black;
-    text-decoration: none;
-    margin: 0 5px;
-}
+
+/* --- ESTILOS OBSOLETOS (DESACTIVADOS) --- */
+/* Las reglas .producto, .menu_inventario, .botones, etc., han sido reemplazadas */
+
+/* =========================================
+   DISEÑO DE TARJETAS (PULIDO FINAL Y ÚNICO)
+   ========================================= */
+
 .inventario {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    column-gap: 8px; /* espacio entre columnas */
-    row-gap: 16px;    /* reduce el espacio vertical */
-    padding: 10px 30px;
-    max-width: 1800px; 
-    margin: 0 auto;
+    /* Mantenemos el tamaño flexible y el gap */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
     justify-items: center;
+    width: 100%;
 }
-.producto {
-    width: 210px;          
-    height: 220px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    text-align: center;
-    padding: 15px;
+
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 220px;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-.producto:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
 }
-.producto h3 {
-    font-size: 1rem;    
-    margin: 5px 0;
-    color: #3e2723;
-}
-.producto p {
-    font-size: 0.85rem;  
-    margin: 5px 0;
-}
-.producto img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
-    margin: 5px 0;
-}
-input[type="number"] {
-    width: 60px;
-    padding: 3px;
-    font-size: 0.85rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    text-align: center;
-}
-.botones {
+
+/* --- Imagen --- */
+.card-image-box {
+    width: 100%;
+    height: 140px; 
     display: flex;
-    gap: 8px;
+    align-items: center;
     justify-content: center;
+    background-color: #fff;
+    padding-top: 15px;
 }
-.botones button {
-    background-color: #6d4c41;
+
+.card-image-box img {
+    max-width: 70%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* --- Contenido --- */
+.card-content {
+    padding: 0 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    /* Ajustamos el gap y centramos mejor */
+    padding-top: 5px; 
+}
+
+.card-content h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin: 10px 0 5px 0; /* Espaciado superior/inferior para el título */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Control de Cantidad (Input) --- */
+.qty-control {
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 10px; /* Separación de los botones */
+}
+
+.qty-control span {
+    /* Alineación vertical del texto con el input */
+    line-height: 28px; 
+}
+
+.qty-control input {
+    width: 50px;
+    padding: 3px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #333;
+    outline: none;
+    background-color: #fff;
+    height: 20px; 
+}
+
+/* --- Botones Pequeños (Iconos) --- */
+.icon-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 5px; 
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px; 
     border: none;
+    background-color: #6d4c41; /* Color Café */
     color: white;
-    border-radius: 8px;
-    padding: 5px 8px;
+    font-size: 0.9rem;
     cursor: pointer;
-    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
 }
-.botones button:hover {
+
+.btn-icon:hover {
     background-color: #4e342e;
 }
+
+
+/* --- ESTILOS MODAL --- */
+
 .modal {
     display: none;
     position: fixed;
@@ -211,22 +239,17 @@ h4 {
     font-weight: 600;
     color: #4e342e;
 }
-.form_grupo input[type = "number"] {
-    width: 60px;
-    padding: 5px;
-    text-align: center;
-    border: 1.5px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-.form_grupo input[type = "text"] {
+.form_grupo input[type = "number"], .form_grupo input[type = "text"] {
     width: 100%;
     padding: 8px;
     border: 1.5px solid #ccc;
     border-radius: 6px;
     font-size: 1rem;
     transition: all 0.2s ease;
+}
+.form_grupo input[type = "number"] {
+    width: 60px; /* Sobre escribimos el ancho para el input number */
+    text-align: center;
 }
 .form_grupo input:focus {
     border-color: #6d4c41;
@@ -271,30 +294,6 @@ h4 {
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
-.form_grupo small {
-    display: block;
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 4px;
-}
-.form_grupo p {
-    font-size: 0.9rem;
-    color: #4e342e;
-    margin: 0;
-}
-.form_grupo p b {
-    color: #6d4c41;
-}
-#peso_unidad {
-    font-weight: bold;
-    color: #6d4c41;
-}
-#nombre_producto,
-#total_gramos {
-    width: 70% !important;
-    padding: 6px;
-    font-size: 0.95rem;
-}
 /* Estilos para el modal de ordenar */
 #ordenModal .modal-content {
     background: linear-gradient(180deg, #ffffff 0%, #f7f3f0 100%);
@@ -307,7 +306,6 @@ h4 {
     position: relative;
     padding: 20px;
 }
-
 #ordenModal h3 {
     color: #5D4037;
     text-align: center;
@@ -315,14 +313,12 @@ h4 {
     font-weight: bold;
     margin-bottom: 20px;
 }
-
 #ordenModal label {
     display: block;
     margin-bottom: 5px;
     font-weight: 600;
     color: #4e342e;
 }
-
 #ordenModal input,
 #ordenModal textarea {
     width: 100%;
@@ -333,14 +329,12 @@ h4 {
     font-size: 1rem;
     box-sizing: border-box;
 }
-
 #ordenModal input:focus,
 #ordenModal textarea:focus {
     border-color: #6d4c41;
     box-shadow: 0 0 6px rgba(109, 76, 65, 0.4);
     outline: none;
 }
-
 #ordenModal button[type="submit"] {
     background-color: #6d4c41;
     color: white;
@@ -352,12 +346,10 @@ h4 {
     width: 100%;
     transition: all 0.3s ease;
 }
-
 #ordenModal button[type="submit"]:hover {
     background-color: #4e342e;
     transform: scale(1.02);
 }
-
 .close-button {
     position: absolute;
     top: 15px;
@@ -367,7 +359,9 @@ h4 {
     color: #5D4037;
     transition: color 0.3s;
 }
-
 .close-button:hover {
     color: #ff6b6b;
 }
+
+/* Reglas de stock obsoletas */
+.bg-ok, .bg-low, .bg-crit, .stock-indicator { display: none; }
